@@ -51,7 +51,33 @@ func GetBalance() {
 	log.Printf("USD Balance: %v", account.GetBalance(usdAsset))
 }
 
+func Pay() {
+	// Create a new MicroStellar client connected to the testnet.
+	ms := microstellar.New("test")
+	usdAsset := microstellar.NewAsset("USD",
+		"GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A", microstellar.Credit4Type)
+	err := ms.Pay("SAZFJYCBBUWVLODIFGMZKODA3LWAEUDPQ5N6R4CSXPDY5X37AZWITFYE",
+		"GC6FWUCJ6EEZ45OZUKBSINQKDBCJTSS6Q2I33XPJCLNL6ONGVBGUENHA",
+		usdAsset, "1")
+
+	if err != nil {
+		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
+	}
+
+	// Load account from ledger.
+	account, err := ms.LoadAccount("GC6FWUCJ6EEZ45OZUKBSINQKDBCJTSS6Q2I33XPJCLNL6ONGVBGUENHA")
+
+	if err != nil {
+		log.Fatalf("LoadAccount: %v", microstellar.ErrorString(err))
+	}
+
+	// See balances
+	log.Printf("Native Balance: %v", account.GetNativeBalance())
+	log.Printf("USD Balance: %v", account.GetBalance(usdAsset))
+}
+
 func main() {
 	// CreateAndFundAccount()
-	GetBalance()
+	// GetBalance()
+	Pay()
 }

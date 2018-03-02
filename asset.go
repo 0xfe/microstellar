@@ -30,5 +30,15 @@ func NewAsset(code string, issuer string, assetType AssetType) *Asset {
 
 // Equals returns true if "this" and "that" represent the same asset class.
 func (this Asset) Equals(that Asset) bool {
+	// For native assets, don't compare code or issuer
+	if this.Type == NativeType || that.Type == NativeType {
+		return this.Type == that.Type
+	}
+
 	return (this.Code == that.Code && this.Issuer == that.Issuer && this.Type == that.Type)
+}
+
+// IsNative returns true if the asset is a native asset (e.g., lumens.)
+func (this Asset) IsNative() bool {
+	return this.Type == NativeType
 }

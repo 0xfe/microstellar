@@ -61,6 +61,27 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 	return NewAccountFromHorizon(account), nil
 }
 
+// Pay makes a payment of ammount from source to target in the currency specified by asset
+func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, asset *Asset, amount string) error {
+	var payment build.PaymentBuilder
+
+	if asset.IsNative() {
+		payment = build.Payment(
+			build.Destination{AddressOrSeed: targetAddress},
+			build.NativeAmount{Amount: amount})
+	} else {
+		payment = build.Payment(
+			build.Destination{AddressOrSeed: targetAddress},
+			build.CreditAmount{Code: asset.Code, Issuer: asset.Issuer, Amount: amount})
+	}
+
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(sourceSeed), payment)
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
 // GetBalances returns the balances in the account
 // PayLumens
 // Pay
