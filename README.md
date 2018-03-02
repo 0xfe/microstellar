@@ -1,6 +1,6 @@
 # MicroStellar
 
-MicroStellar is an easy-to-use and fully functional Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+MicroStellar is an easy-to-use and fully functional (WIP) Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
 
 ## QuickStart
 
