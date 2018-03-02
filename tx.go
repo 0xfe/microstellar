@@ -19,6 +19,7 @@ type Tx struct {
 	client      *horizon.Client
 	networkName string
 	network     build.Network
+	fake        bool
 	builder     *build.TransactionBuilder
 	payload     string
 	submitted   bool
@@ -31,9 +32,15 @@ func NewTx(networkName string) *Tx {
 	var network build.Network
 	var client *horizon.Client
 
+	fake := false
+
 	if networkName == "test" {
 		network = build.TestNetwork
 		client = horizon.DefaultTestNetClient
+	} else if networkName == "fake" {
+		network = build.TestNetwork
+		client = horizon.DefaultTestNetClient
+		fake = true
 	} else {
 		network = build.PublicNetwork
 		client = horizon.DefaultPublicNetClient
@@ -43,6 +50,7 @@ func NewTx(networkName string) *Tx {
 		networkName: networkName,
 		client:      client,
 		network:     network,
+		fake:        fake,
 		builder:     nil,
 		payload:     "",
 		submitted:   false,
@@ -143,6 +151,11 @@ func (tx *Tx) Sign(key string) error {
 
 // Submit sends the transaction to the stellar network.
 func (tx *Tx) Submit() error {
+	if tx.fake {
+		tx.response = &horizon.TransactionSuccess{Result: "fake_ok"}
+		return nil
+	}
+
 	if tx.err != nil {
 		return tx.err
 	}

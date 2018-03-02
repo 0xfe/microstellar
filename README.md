@@ -42,6 +42,14 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 
 ## Hacking
 
+### Setup
+
+This package uses `dep` to manage dependencies.
+
+```
+dep install
+```
+
 ### Run tests
 
 ```
