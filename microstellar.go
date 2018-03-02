@@ -107,8 +107,18 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 	return tx.Err()
 }
 
+// RemoveTrustLine removes an trustline to an asset.
+func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset) error {
+	tx := NewTx(ms.networkName)
+
+	tx.Build(sourceAccount(sourceSeed), build.RemoveTrust(asset.Code, asset.Issuer))
+
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
 // TODO:
-// Removetrustline
 // AddSigners
 // ChangeSigners
 // Masterweight

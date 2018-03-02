@@ -55,14 +55,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 	return *keyPair
 }
 
-func checkBalance() {
-	ms := microstellar.New("test")
-	addr := "GAH4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"
-	account, _ := ms.LoadAccount(addr)
-
-	log.Printf("Balance: %v", account.GetNativeBalance())
-}
-
+// Helper function to show the asset balance of a specific account
 func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name, address string) {
 	log.Printf("Balances for %s: %s", name, address)
 	account, err := ms.LoadAccount(address)
@@ -75,6 +68,7 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 	log.Print("  USD: ", account.GetBalance(asset))
 }
 
+// This method implements the full end-to-end test
 func runTest(fundSourceSeed string) {
 	ms := microstellar.New("test")
 
@@ -116,6 +110,20 @@ func runTest(fundSourceSeed string) {
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)
+	}
+
+	log.Print("Sending back USD from customer to distributor before removing trustline...")
+	err = ms.Pay(keyPair3.Seed, keyPair2.Address, USD, "5000")
+
+	if err != nil {
+		log.Fatalf("Pay: %v", err)
+	}
+
+	log.Printf("Removing USD trustline for %s (customer)...", keyPair3.Address)
+	err = ms.RemoveTrustLine(keyPair3.Seed, USD)
+
+	if err != nil {
+		log.Fatalf("RemoveTrustLine: %v", err)
 	}
 
 	showBalance(ms, USD, "issuer", keyPair1.Address)

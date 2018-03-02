@@ -1,6 +1,6 @@
 # MicroStellar
 
-MicroStellar is an easy-to-use Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+MicroStellar is an easy-to-use and fully functional Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
 
 ## QuickStart
 
@@ -38,6 +38,7 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 ## Documentation
 
 * API Docs - https://godoc.org/github.com/0xfe/microstellar
+* End-to-end test - https://github.com/0xfe/microstellar/blob/master/macrotest/macrotest.go
 
 ## Hacking
 
