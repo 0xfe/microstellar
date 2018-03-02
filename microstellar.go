@@ -8,16 +8,11 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
+// MicroStellar is the user handle to the Stellar network. Use the New function
+// to create a new instance.
 type MicroStellar struct {
 	networkName string
 	fake        bool
-}
-
-// KeyPair represents a key pair for a signer on a stellar account. An account
-// can have multiple signers.
-type KeyPair struct {
-	Seed    string // private key
-	Address string // public key
 }
 
 // New returns a new MicroStellar client connected to networkName ("test", "public")

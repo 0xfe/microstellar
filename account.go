@@ -4,6 +4,13 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
+// KeyPair represents a key pair for a signer on a stellar account. An account
+// can have multiple signers.
+type KeyPair struct {
+	Seed    string // private key
+	Address string // public key
+}
+
 // Balance is the balance amount of the asset in the account.
 type Balance struct {
 	Asset  *Asset
