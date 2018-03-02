@@ -18,7 +18,9 @@ func ErrorString(err error) string {
 		if err != nil {
 			errorString = fmt.Sprintf("%v", err)
 		}
-		errorString = fmt.Sprintf("%v", resultCodes)
+		errorString = fmt.Sprintf("Codes: %v, Problem: %v", resultCodes, herr.Problem)
+	} else {
+		errorString = fmt.Sprintf("%v", err)
 	}
 
 	return errorString

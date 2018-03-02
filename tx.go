@@ -99,6 +99,11 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 		return tx.err
 	}
 
+	if tx.fake {
+		tx.builder = &build.TransactionBuilder{}
+		return nil
+	}
+
 	muts = append([]build.TransactionMutator{
 		sourceAccount,
 		tx.network,
@@ -132,6 +137,11 @@ func (tx *Tx) Sign(key string) error {
 		return tx.err
 	}
 
+	if tx.fake {
+		tx.payload = "FAKE"
+		return nil
+	}
+
 	txe, err := tx.builder.Sign(key)
 
 	if err != nil {
@@ -151,11 +161,6 @@ func (tx *Tx) Sign(key string) error {
 
 // Submit sends the transaction to the stellar network.
 func (tx *Tx) Submit() error {
-	if tx.fake {
-		tx.response = &horizon.TransactionSuccess{Result: "fake_ok"}
-		return nil
-	}
-
 	if tx.err != nil {
 		return tx.err
 	}
@@ -168,6 +173,11 @@ func (tx *Tx) Submit() error {
 	if tx.submitted {
 		tx.err = fmt.Errorf("Tx.Submit: transaction already submitted")
 		return tx.err
+	}
+
+	if tx.fake {
+		tx.response = &horizon.TransactionSuccess{Result: "fake_ok"}
+		return nil
 	}
 
 	resp, err := tx.client.SubmitTransaction(tx.payload)
