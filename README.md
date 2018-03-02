@@ -40,7 +40,21 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 * API Docs - https://godoc.org/github.com/0xfe/microstellar
 * End-to-end test - https://github.com/0xfe/microstellar/blob/master/macrotest/macrotest.go
 
-## Hacking
+### Supported Features
+
+* Account creation and funding
+* Lookup balances, home domain, and account signers
+* Payment of native and custom assets
+* Add and remove trust lines
+* Change key weights
+
+### Coming Soon
+
+* Offer management
+* Streaming ledger data (transactions, offers, etc.)
+* Operations and options
+
+## Hacking on MicroStellar
 
 ### Contribution Guidelines
 
@@ -52,9 +66,10 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
   * If necessary, update the integration test in `macrotest/`
   * If necessary, add examples and verify that they show up in godoc
 
-### Setup
+### Environment Setup
 
-This package uses [dep](https://github.com/golang/dep) to manage dependencies. To install dependencies:
+This package uses [dep](https://github.com/golang/dep) to manage dependencies. Before
+hacking on this package, install all dependencies:
 
 ```
 dep ensure
@@ -62,13 +77,19 @@ dep ensure
 
 ### Run tests
 
+Run all unit tests:
+
 ```
 go test -v
 ```
 
-### GoDoc
+Run end-to-end integration test:
 
-Test your documentation with:
+```
+go run -v macrotest/macrotest.go
+```
+
+Test documentation with:
 
 ```
 godoc -v -http=:6060
@@ -76,29 +97,12 @@ godoc -v -http=:6060
 
 Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
 
-## Status
-
-### Working
-
-* Connect to network and send operations
-* Create and fund accounts
-* Get balances
-* Pay in native and credit assets
-* Trust lines
-* Issue Assets
-* Integration test against horizon-test
-
-### In progress
-
-* Remove trust lines
-
-### TODO
-
-* Add/change signers
-* Offer management
-
 ## MIT License
 
-... insert MIT blah blah here ...
+Copyright Mohit Muthanna Cheppudira 2018 <mohit@muthanna.com>
 
-Copyright Mohit Muthanna Cheppudira 2018
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
