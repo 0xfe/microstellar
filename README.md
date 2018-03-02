@@ -4,6 +4,14 @@ MicroStellar is an easy-to-use Go client for the Stellar network.
 
 ## QuickStart
 
+### Installation
+
+```
+go get github.com/0xfe/microstellar
+```
+
+### Usage
+
 ```go
 // Create a new MicroStellar client connected to the testnet.
 ms := microstellar.New("test")
