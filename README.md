@@ -13,44 +13,52 @@ go get github.com/0xfe/microstellar
 ### Usage
 
 ```go
-// Create a new MicroStellar client connected to the testnet.
-ms := microstellar.New("test")
+package main
 
-// Generate a new random keypair.
-pair, _ := ms.CreateKeyPair()
-log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
+import (
+	"github.com/0xfe/microstellar"
+)
 
-// Fund the account with 1 lumen from an existing account.
-ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
+func main() {
+    // Create a new MicroStellar client connected to the testnet.
+    ms := microstellar.New("test")
 
-// Fund an account on the test network with Friendbot.
-microstellar.FundWithFriendBot(pair.Address)
+    // Generate a new random keypair.
+    pair, _ := ms.CreateKeyPair()
+    log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
-// Now load account details from ledger.
-account, _ := ms.LoadAccount(pair.Address)
-log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+    // Fund the account with 1 lumen from an existing account.
+    ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
 
-// Pay someone 3 lumens.
-ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
+    // Fund an account on the test network with Friendbot.
+    microstellar.FundWithFriendBot(pair.Address)
 
-// Pay someone 1 USD issued by an anchor.
-USD := microstellar.NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
-ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
+    // Now load account details from ledger.
+    account, _ := ms.LoadAccount(pair.Address)
+    log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 
-// Create a trust line to a credit asset with a limit of 1000.
-ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
+    // Pay someone 3 lumens.
+    ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
 
-// Check balance.
-account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
-log.Printf("USD Balance: %v USD", account.GetBalance(USD))
-log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+    // Pay someone 1 USD issued by an anchor.
+    USD := microstellar.NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
+    ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
 
-// What's their home domain?
-log.Printf("Home domain: %s", account.HomeDomain)
+    // Create a trust line to a credit asset with a limit of 1000.
+    ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
 
-// Who are the signers on the account?
-for i, s := range account.Signers {
-    log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
+    // Check balance.
+    account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
+    log.Printf("USD Balance: %v USD", account.GetBalance(USD))
+    log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+
+    // What's their home domain?
+    log.Printf("Home domain: %s", account.HomeDomain)
+
+    // Who are the signers on the account?
+    for i, s := range account.Signers {
+        log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
+    }
 }
 ```
 
