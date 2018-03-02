@@ -14,25 +14,44 @@ go get github.com/0xfe/microstellar
 
 ```go
 // Create a new MicroStellar client connected to the testnet.
-ms := microstellar.New("test")
+ms := New("test")
 
 // Generate a new random keypair.
-pair, err := ms.CreateKeyPair()
-if err != nil { log.Fatalf("CreateKeyPair: %v", err) }
-
-// Display address and key
+pair, _ := ms.CreateKeyPair()
 log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
 // Fund the account with 1 lumen from an existing account.
-err = ms.FundAccount(pair.Address, "S6 ... private key ... 3J", "1")
-if err != nil { log.Fatalf("FundAccount: %v", err) }
+ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
+
+// Fund an account on the test network with Friendbot.
+FundWithFriendBot(pair.Address)
 
 // Now load account details from ledger.
-account, err := ms.LoadAccount(pair.Address)
-if err != nil { log.Fatalf("LoadAccount: %v", err) }
-
-// See balance
+account, _ := ms.LoadAccount(pair.Address)
 log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+
+// Pay someone 3 lumens.
+ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
+
+// Pay someone 1 USD issued by an anchor.
+USD := NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
+ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
+
+// Create a trust line to a credit asset with a limit of 1000.
+ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
+
+// Check balance.
+account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
+log.Printf("USD Balance: %v USD", account.GetBalance(USD))
+log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+
+// What's their home domain?
+log.Printf("Home domain: %s", account.HomeDomain)
+
+// Who are the signers on the account?
+for i, s := range account.Signers {
+    log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
+}
 ```
 
 ## Documentation
