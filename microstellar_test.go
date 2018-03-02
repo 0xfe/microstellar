@@ -82,3 +82,26 @@ func ExampleMicroStellar_FundAccount() {
 	fmt.Printf("ok")
 	// Output: ok
 }
+
+// This example loads and displays the native and a non-native balance on an account.
+func ExampleMicroStellar_LoadAccount_GetBalance() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Load account from ledger.
+	account, err := ms.LoadAccount("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
+
+	if err != nil {
+		log.Fatalf("LoadAccount: %v", err)
+	}
+
+	// See balances
+	log.Printf("Native Balance: %v", account.GetNativeBalance())
+	log.Printf("USD Balance: %v", account.GetBalance(USD))
+	fmt.Printf("ok")
+	// Output: ok
+}
