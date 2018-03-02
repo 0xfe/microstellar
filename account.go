@@ -103,3 +103,8 @@ func (account *Account) GetBalance(asset *Asset) string {
 func (account *Account) GetNativeBalance() string {
 	return account.NativeBalance.Amount
 }
+
+// GetMasterWeight returns the weight of the primary key in the account.
+func (account *Account) GetMasterWeight() int32 {
+	return account.Signers[0].Weight
+}

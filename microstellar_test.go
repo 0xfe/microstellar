@@ -214,7 +214,7 @@ func ExampleMicroStellar_SetMasterWeight() {
 		log.Fatalf("LoadAccount: %v", err)
 	}
 
-	log.Printf("Master weight: %v", account.Signers[0].Weight)
+	log.Printf("Master weight: %v", account.GetMasterWeight())
 	fmt.Printf("ok")
 	// Output: ok
 }

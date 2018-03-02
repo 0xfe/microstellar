@@ -64,7 +64,7 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 		log.Fatalf("Canl't load balances for %s: %s", name, address)
 	}
 
-	log.Print("  master weight: ", account.Signers[0].Weight)
+	log.Print("  master weight: ", account.GetMasterWeight())
 	log.Print("  XLM: ", account.GetNativeBalance())
 	log.Print("  USD: ", account.GetBalance(asset))
 }
