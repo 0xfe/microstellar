@@ -7,6 +7,12 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
+// Tx represents a unique stellar operation. This is used by the MicroStellar
+// library to abstract away the Horizon API and transport. To reuse Tx
+// instances, you must call Tx.Reset() between operations.
+//
+// This struct is not thread-safe by design -- you must use separate instances
+// in different goroutines.
 type Tx struct {
 	client      *horizon.Client
 	networkName string
@@ -18,6 +24,7 @@ type Tx struct {
 	err         error
 }
 
+// NewTx returns a new Tx that operates on networkName ("test", "public".)
 func NewTx(networkName string) *Tx {
 	var network build.Network
 	var client *horizon.Client
@@ -42,18 +49,22 @@ func NewTx(networkName string) *Tx {
 	}
 }
 
+// GetClient returns the underlying horizon client handle.
 func (tx *Tx) GetClient() *horizon.Client {
 	return tx.client
 }
 
+// Err returns the error from the most recent failed operation.
 func (tx *Tx) Err() error {
 	return tx.err
 }
 
+// Response returns the horison response for the submitted operation.
 func (tx *Tx) Response() string {
 	return fmt.Sprintf("%v", tx.response)
 }
 
+// Reset clears all internal state, so you can run a new operation.
 func (tx *Tx) Reset() {
 	tx.err = nil
 	tx.builder = nil
@@ -63,6 +74,11 @@ func (tx *Tx) Reset() {
 	tx.err = nil
 }
 
+func sourceAccount(addressOrSeed string) build.SourceAccount {
+	return build.SourceAccount{AddressOrSeed: addressOrSeed}
+}
+
+// Build creates a new operation out of the provided mutators.
 func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.TransactionMutator) error {
 	if tx.err != nil {
 		return tx.err
@@ -85,10 +101,12 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 	return err
 }
 
+// IsSigned returns true of the transaction is signed.
 func (tx *Tx) IsSigned() bool {
 	return tx.payload != ""
 }
 
+// Sign signs the transaction with key.
 func (tx *Tx) Sign(key string) error {
 	if tx.err != nil {
 		return tx.err
@@ -121,6 +139,7 @@ func (tx *Tx) Sign(key string) error {
 	return nil
 }
 
+// Submit sends the transaction to the stellar network.
 func (tx *Tx) Submit() error {
 	if tx.err != nil {
 		return tx.err
