@@ -1,5 +1,7 @@
 // Package microstellar is an easy-to-use Go client for the Stellar network.
 //
+//   go get github.com/0xfe/microstellar
+//
 // Author: Mohit Muthanna Cheppudira <mohit@muthanna.com>
 package microstellar
 

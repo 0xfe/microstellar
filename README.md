@@ -1,6 +1,6 @@
 # MicroStellar
 
-MicroStellar is an easy-to-use Go client for the Stellar network.
+MicroStellar is an easy-to-use Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
 
 ## QuickStart
 
@@ -38,16 +38,25 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 ## Documentation
 
 * API Docs - https://godoc.org/github.com/0xfe/microstellar
-* Tutorial - TODO
 
 ## Hacking
 
+### Contribution Guidelines
+
+* We're managing dependencies with [dep](https://github.com/golang/dep).
+  * Add a new dependency with `dep ensure -add ...`
+* If you're adding a new feature:
+  * Add unit tests
+  * Add godoc comments
+  * If necessary, update the integration test in `macrotest/`
+  * If necessary, add examples and verify that they show up in godoc
+
 ### Setup
 
-This package uses `dep` to manage dependencies.
+This package uses [dep](https://github.com/golang/dep) to manage dependencies. To install dependencies:
 
 ```
-dep install
+dep ensure
 ```
 
 ### Run tests
@@ -57,6 +66,8 @@ go test -v
 ```
 
 ### GoDoc
+
+Test your documentation with:
 
 ```
 godoc -v -http=:6060
@@ -76,6 +87,7 @@ Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
 ### In progress
 
 * Trust lines
+* Integration test against horizon-test
 
 ### TODO
 
