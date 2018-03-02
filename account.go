@@ -26,6 +26,10 @@ type Account struct {
 // newAccountFromHorizon creates a new account from a Horizon JSON response.
 func newAccountFromHorizon(ha horizon.Account) *Account {
 	account := &Account{}
+
+	// Initialize native balance
+	account.NativeBalance = Balance{NativeAsset, "0"}
+
 	for _, b := range ha.Balances {
 		if b.Asset.Type == string(NativeType) {
 			account.NativeBalance = Balance{NativeAsset, b.Balance}
@@ -46,6 +50,10 @@ func newAccountFromHorizon(ha horizon.Account) *Account {
 // GetBalance returns the balance for asset in account. If no balance is
 // found for the asset, returns "".
 func (account *Account) GetBalance(asset *Asset) string {
+	if asset.IsNative() {
+		return account.GetNativeBalance()
+	}
+
 	for _, b := range account.Balances {
 		if asset.Equals(*b.Asset) {
 			return b.Amount

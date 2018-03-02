@@ -37,7 +37,7 @@ func (ms *MicroStellar) CreateKeyPair() (*KeyPair, error) {
 
 // FundAccount creates a new account out of address by funding it with lumens
 // from sourceSeed. The minimum funding amount today is 0.5 XLM.
-func (ms *MicroStellar) FundAccount(address string, sourceSeed string, amount string) error {
+func (ms *MicroStellar) FundAccount(sourceSeed string, address string, amount string) error {
 	payment := build.CreateAccount(
 		build.Destination{AddressOrSeed: address},
 		build.NativeAmount{Amount: amount})
@@ -99,7 +99,7 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 	if limit == "" {
 		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer))
 	} else {
-		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer, limit))
+		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer, build.Limit(limit)))
 	}
 
 	tx.Sign(sourceSeed)
@@ -107,12 +107,8 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 	return tx.Err()
 }
 
-// GetBalances returns the balances in the account
-// PayLumens
-// Pay
-// IssueAsset
-// AddTrustLine
-// ChangeTrustline
+// TODO:
+// Removetrustline
 // AddSigners
 // ChangeSigners
 // Masterweight

@@ -83,15 +83,16 @@ Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
 * Create and fund accounts
 * Get balances
 * Pay in native and credit assets
+* Trust lines
+* Issue Assets
+* Integration test against horizon-test
 
 ### In progress
 
-* Trust lines
-* Integration test against horizon-test
+* Remove trust lines
 
 ### TODO
 
-* Issue Assets
 * Add/change signers
 * Offer management
 
