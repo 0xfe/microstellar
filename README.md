@@ -14,7 +14,7 @@ go get github.com/0xfe/microstellar
 
 ```go
 // Create a new MicroStellar client connected to the testnet.
-ms := New("test")
+ms := microstellar.New("test")
 
 // Generate a new random keypair.
 pair, _ := ms.CreateKeyPair()
@@ -24,7 +24,7 @@ log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
 
 // Fund an account on the test network with Friendbot.
-FundWithFriendBot(pair.Address)
+microstellar.FundWithFriendBot(pair.Address)
 
 // Now load account details from ledger.
 account, _ := ms.LoadAccount(pair.Address)
@@ -34,7 +34,7 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
 
 // Pay someone 1 USD issued by an anchor.
-USD := NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
+USD := microstellar.NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
 ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
 
 // Create a trust line to a credit asset with a limit of 1000.
