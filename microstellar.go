@@ -1,3 +1,38 @@
+// Package microstellar is an easy-to-use Go client for the Stellar network.
+//
+// Usage:
+//
+//   // Create a new MicroStellar client connected to the testnet.
+//   ms := microstellar.New("test")
+//
+//   // Generate a new random keypair.
+//   pair, err := ms.CreateKeyPair()
+//
+//   // Display address and key
+//   log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
+//
+//   // Fund the account with 1 lumen from an existing account.
+//   err = ms.FundAccount(pair.Address, "S6 ... private key ... 3J", "1")
+//
+//   // Fund an account on the test network with Friendbot
+//   resp, err := microstellar.FundWithFriendBot(pair.Address)
+//
+//   // Now load account details from ledger.
+//   account, err := ms.LoadAccount(pair.Address)
+//   log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+//
+//   // Pay someone 3 lumens
+//   ms.PayNative("S-sourceSeed", "G-targetAccount", "3")
+//
+//   // Pay someone 1 USD issued by an anchor
+//   USD := microstellar.NewAsset("USD", "ISSUERACCOUNT", microstellar.Credit4Type)
+//   ms.Pay("S-sourceSeed", "G-targetAccount", USD, "3")
+//
+//   // Check their balance
+//   account, err := ms.LoadAccount("G-targetaccount")
+//   log.Printf("USD Balance: %v USD", account.GetBalance(USD))
+//
+// Author: Mohit Muthanna Cheppudira <mohit@muthanna.com>
 package microstellar
 
 import (
@@ -5,8 +40,6 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-// MicroStellar is high-level client for the Stellar network. It exposes a
-// simpler API than the existing Go client (stellar/go/clients/horizon.)
 type MicroStellar struct {
 	networkName string
 }
@@ -58,7 +91,7 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 		return nil, err
 	}
 
-	return NewAccountFromHorizon(account), nil
+	return newAccountFromHorizon(account), nil
 }
 
 // Pay makes a payment of amount from source to target in the currency specified by asset.

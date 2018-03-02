@@ -16,8 +16,8 @@ type Account struct {
 	NativeBalance Balance
 }
 
-// NewAccountFromHorizon creates a new account from a Horizon JSON response.
-func NewAccountFromHorizon(ha horizon.Account) *Account {
+// newAccountFromHorizon creates a new account from a Horizon JSON response.
+func newAccountFromHorizon(ha horizon.Account) *Account {
 	account := &Account{}
 	for _, b := range ha.Balances {
 		if b.Asset.Type == string(NativeType) {

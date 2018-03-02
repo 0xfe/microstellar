@@ -27,6 +27,27 @@ if err != nil { log.Fatalf("LoadAccount: %v", err) }
 log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 ```
 
+## Documentation
+
+* API Docs - https://godoc.org/github.com/0xfe/microstellar
+* Tutorial - TODO
+
+## Hacking
+
+### Run tests
+
+```
+go test -v
+```
+
+### GoDoc
+
+```
+godoc -v -http=:6060
+```
+
+Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
+
 ## Status
 
 ### Working

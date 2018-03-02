@@ -13,6 +13,8 @@ import (
 //
 // This struct is not thread-safe by design -- you must use separate instances
 // in different goroutines.
+//
+// Unless you're hacking around in the guts, you should not need to use Tx.
 type Tx struct {
 	client      *horizon.Client
 	networkName string
