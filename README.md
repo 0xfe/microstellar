@@ -34,10 +34,11 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 * Connect to network and send operations
 * Create and fund accounts
 * Get balances
+* Pay in native and credit assets
 
 ### In progress
 
-* Make payments
+* Trust lines
 
 ### TODO
 

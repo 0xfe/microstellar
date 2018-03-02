@@ -2,6 +2,8 @@ package microstellar
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/stellar/go/clients/horizon"
 )
@@ -20,4 +22,20 @@ func ErrorString(err error) string {
 	}
 
 	return errorString
+}
+
+// FundWithFriendBot funds address on the test network with some initial funds.
+func FundWithFriendBot(address string) (string, error) {
+	resp, err := http.Get("https://horizon-testnet.stellar.org/friendbot?addr=" + address)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
 }

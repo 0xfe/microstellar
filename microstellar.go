@@ -61,7 +61,7 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 	return NewAccountFromHorizon(account), nil
 }
 
-// Pay makes a payment of ammount from source to target in the currency specified by asset
+// Pay makes a payment of amount from source to target in the currency specified by asset.
 func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, asset *Asset, amount string) error {
 	var payment build.PaymentBuilder
 
@@ -80,6 +80,11 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, asset *Asse
 	tx.Sign(sourceSeed)
 	tx.Submit()
 	return tx.Err()
+}
+
+// PayNative makes a native asset payment of amount from source to target.
+func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amount string) error {
+	return ms.Pay(sourceSeed, targetAddress, NativeAsset, amount)
 }
 
 // GetBalances returns the balances in the account
