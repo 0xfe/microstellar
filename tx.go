@@ -42,6 +42,10 @@ func NewTx(networkName string) *Tx {
 	}
 }
 
+func (tx *Tx) GetClient() *horizon.Client {
+	return tx.client
+}
+
 func (tx *Tx) Err() error {
 	return tx.err
 }
@@ -59,7 +63,7 @@ func (tx *Tx) Reset() {
 	tx.err = nil
 }
 
-func (tx *Tx) Build(muts ...build.TransactionMutator) error {
+func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.TransactionMutator) error {
 	if tx.err != nil {
 		return tx.err
 	}
@@ -70,12 +74,14 @@ func (tx *Tx) Build(muts ...build.TransactionMutator) error {
 	}
 
 	muts = append([]build.TransactionMutator{
+		sourceAccount,
 		tx.network,
 		build.AutoSequence{SequenceProvider: tx.client},
 	}, muts...)
 
 	builder, err := build.Transaction(muts...)
 	tx.builder = builder
+	tx.err = err
 	return err
 }
 

@@ -46,3 +46,17 @@ func (ms *MicroStellar) FundAccount(address string, sourceSeed string, amount st
 	tx.Submit()
 	return tx.Err()
 }
+
+func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
+	tx := NewTx(ms.networkName)
+	account, err := tx.GetClient().LoadAccount(address)
+
+	if err != nil {
+		return nil, err
+	}
+
+	wrappedAccount := Account(account)
+	return &wrappedAccount, nil
+}
+
+// GetBalances returns the balances in the account
