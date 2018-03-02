@@ -91,6 +91,22 @@ func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amoun
 	return ms.Pay(sourceSeed, targetAddress, NativeAsset, amount)
 }
 
+// CreateTrustLine creates a trustline to asset, with the specified trust limit. An empty
+// limit string indicates no limit.
+func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string) error {
+	tx := NewTx(ms.networkName)
+
+	if limit == "" {
+		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer))
+	} else {
+		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer, limit))
+	}
+
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
 // GetBalances returns the balances in the account
 // PayLumens
 // Pay

@@ -105,3 +105,23 @@ func ExampleMicroStellar_LoadAccount_GetBalance() {
 	fmt.Printf("ok")
 	// Output: ok
 }
+
+// This example creates a trust line to a credit asset.
+func ExampleMicroStellar_CreateTrustLine() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Create a trustline to the custom asset with no limit
+	err := ms.CreateTrustLine("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", USD, "")
+
+	if err != nil {
+		log.Fatalf("LoadAccount: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
