@@ -52,7 +52,7 @@ func (ms *MicroStellar) FundAccount(sourceSeed string, address string, amount st
 // LoadAccount loads the account information for the given address.
 func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 	if ms.fake {
-		return &Account{}, nil
+		return newAccount(), nil
 	}
 
 	tx := NewTx(ms.networkName)
@@ -110,9 +110,16 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 // RemoveTrustLine removes an trustline to an asset.
 func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset) error {
 	tx := NewTx(ms.networkName)
-
 	tx.Build(sourceAccount(sourceSeed), build.RemoveTrust(asset.Code, asset.Issuer))
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
 
+// SetMasterWeight changes the master weight of an account.
+func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32) error {
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(sourceSeed), build.MasterWeight(weight))
 	tx.Sign(sourceSeed)
 	tx.Submit()
 	return tx.Err()

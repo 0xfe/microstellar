@@ -192,3 +192,29 @@ func ExampleMicroStellar_RemoveTrustLine() {
 	fmt.Printf("ok")
 	// Output: ok
 }
+
+// This example sets the weight of the accounts primary signer (the master weight) to
+// zero. This effectively kills the account.
+func ExampleMicroStellar_SetMasterWeight() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set master weight to zero.
+	err := ms.SetMasterWeight("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", 0)
+
+	if err != nil {
+		log.Fatalf("SetMasterWeight: %v", err)
+	}
+
+	// Load the account and check its master weight
+	account, err := ms.LoadAccount("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
+
+	if err != nil {
+		log.Fatalf("LoadAccount: %v", err)
+	}
+
+	log.Printf("Master weight: %v", account.Signers[0].Weight)
+	fmt.Printf("ok")
+	// Output: ok
+}

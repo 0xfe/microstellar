@@ -35,11 +35,21 @@ type Account struct {
 	Sequence      string
 }
 
+// newAccount creates a new initialized account
+func newAccount() *Account {
+	account := &Account{}
+	account.NativeBalance = Balance{NativeAsset, "0", ""}
+	account.Signers = []Signer{
+		Signer{},
+	}
+
+	return account
+}
+
 // newAccountFromHorizon creates a new account from a Horizon JSON response.
 func newAccountFromHorizon(ha horizon.Account) *Account {
-	account := &Account{}
+	account := newAccount()
 
-	account.NativeBalance = Balance{NativeAsset, "0", ""}
 	account.HomeDomain = ha.HomeDomain
 	account.Sequence = ha.Sequence
 
@@ -58,6 +68,7 @@ func newAccountFromHorizon(ha horizon.Account) *Account {
 		account.Balances = append(account.Balances, balance)
 	}
 
+	account.Signers = []Signer{}
 	for _, s := range ha.Signers {
 		signer := Signer{
 			PublicKey: s.PublicKey,

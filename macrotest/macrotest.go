@@ -64,6 +64,7 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 		log.Fatalf("Canl't load balances for %s: %s", name, address)
 	}
 
+	log.Print("  master weight: ", account.Signers[0].Weight)
 	log.Print("  XLM: ", account.GetNativeBalance())
 	log.Print("  USD: ", account.GetBalance(asset))
 }
@@ -125,6 +126,9 @@ func runTest(fundSourceSeed string) {
 	if err != nil {
 		log.Fatalf("RemoveTrustLine: %v", err)
 	}
+
+	log.Printf("Killing master weight for %s (customer)...", keyPair3.Address)
+	err = ms.SetMasterWeight(keyPair3.Seed, 0)
 
 	showBalance(ms, USD, "issuer", keyPair1.Address)
 	showBalance(ms, USD, "distributor", keyPair2.Address)
