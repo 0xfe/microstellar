@@ -81,7 +81,7 @@ func (ms *MicroStellar) FundAccount(sourceSeed string, address string, amount st
 		build.Destination{AddressOrSeed: address},
 		build.NativeAmount{Amount: amount})
 
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -99,7 +99,7 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 		return newAccount(), nil
 	}
 
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 	account, err := tx.GetClient().LoadAccount(address)
 
 	if err != nil {
@@ -114,7 +114,9 @@ func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amoun
 	return ms.Pay(sourceSeed, targetAddress, amount, NativeAsset, options...)
 }
 
-// Pay lets you create more advanced payment transactions (e.g., pay with credit assets, set memo, etc.)
+// Pay lets you make payments with credit assets.
+//
+//   ms.Pay("source_seed", "target_address", "3", NativeAsset, microstellar.Opts().WithMemoText("for shelter"))
 func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount string, asset *Asset, options ...*TxOptions) error {
 	paymentMuts := []interface{}{
 		build.Destination{AddressOrSeed: targetAddress},
@@ -127,7 +129,7 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 			build.CreditAmount{Code: asset.Code, Issuer: asset.Issuer, Amount: amount})
 	}
 
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -142,7 +144,7 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 // CreateTrustLine creates a trustline from sourceSeed to asset, with the specified trust limit. An empty
 // limit string indicates no limit.
 func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -161,7 +163,7 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 
 // RemoveTrustLine removes an trustline from sourceSeed to an asset.
 func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -175,7 +177,7 @@ func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, options
 
 // SetMasterWeight changes the master weight of sourceSeed.
 func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -189,7 +191,7 @@ func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32, option
 
 // AddSigner adds signerAddress as a signer to sourceSeed's account with weight signerWeight.
 func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -203,7 +205,7 @@ func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signe
 
 // RemoveSigner removes signerAddress as a signer from sourceSeed's account.
 func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
@@ -217,7 +219,7 @@ func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, op
 
 // SetThresholds sets the signing thresholds for the account.
 func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint32, options ...*TxOptions) error {
-	tx := NewTx(ms.networkName)
+	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])

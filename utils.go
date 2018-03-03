@@ -5,8 +5,34 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/0xfe/stellar-go/strkey"
 	"github.com/stellar/go/clients/horizon"
 )
+
+type AddressOrSeed string
+
+// ValidAddress returns error if address is an invalid stellar address
+func ValidAddress(address string) error {
+	_, err := strkey.Decode(strkey.VersionByteAccountID, address)
+	return err
+}
+
+// ValidSeed returns error if the seed is invalid
+func ValidSeed(seed string) error {
+	_, err := strkey.Decode(strkey.VersionByteSeed, seed)
+	return err
+}
+
+// ValidAddressOrSeed returns true if the string is a valid address or seed
+func ValidAddressOrSeed(addressOrSeed string) bool {
+	err := ValidAddress(addressOrSeed)
+	if err == nil {
+		return true
+	}
+
+	err = ValidSeed(addressOrSeed)
+	return err == nil
+}
 
 // HorizonErrorString parses the horizon error out of err.
 func ErrorString(err error) string {
