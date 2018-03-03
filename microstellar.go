@@ -65,30 +65,39 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 	return newAccountFromHorizon(account), nil
 }
 
-// Pay makes a payment of amount from source to target in the currency specified by asset.
-func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, asset *Asset, amount string) error {
-	var payment build.PaymentBuilder
-
-	if asset.IsNative() {
-		payment = build.Payment(
-			build.Destination{AddressOrSeed: targetAddress},
-			build.NativeAmount{Amount: amount})
-	} else {
-		payment = build.Payment(
-			build.Destination{AddressOrSeed: targetAddress},
-			build.CreditAmount{Code: asset.Code, Issuer: asset.Issuer, Amount: amount})
-	}
-
-	tx := NewTx(ms.networkName)
-	tx.Build(sourceAccount(sourceSeed), payment)
-	tx.Sign(sourceSeed)
-	tx.Submit()
-	return tx.Err()
-}
-
 // PayNative makes a native asset payment of amount from source to target.
 func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amount string) error {
-	return ms.Pay(sourceSeed, targetAddress, NativeAsset, amount)
+	return ms.Pay(NewPayment(sourceSeed, targetAddress, amount))
+}
+
+// Pay lets you create more advanced payment transactions (e.g., pay with credit assets, set memo, etc.)
+func (ms *MicroStellar) Pay(payment *Payment) error {
+	txMuts := []build.TransactionMutator{}
+
+	paymentMuts := []interface{}{
+		build.Destination{AddressOrSeed: payment.targetAddress},
+	}
+
+	if payment.asset.IsNative() {
+		paymentMuts = append(paymentMuts, build.NativeAmount{Amount: payment.amount})
+	} else {
+		paymentMuts = append(paymentMuts,
+			build.CreditAmount{Code: payment.asset.Code, Issuer: payment.asset.Issuer, Amount: payment.amount})
+	}
+
+	switch payment.memoType {
+	case MemoText:
+		txMuts = append(txMuts, build.MemoText{Value: payment.memoText})
+	case MemoID:
+		txMuts = append(txMuts, build.MemoID{Value: payment.memoID})
+	}
+
+	txMuts = append(txMuts, build.Payment(paymentMuts...))
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(payment.sourceSeed), txMuts...)
+	tx.Sign(payment.sourceSeed)
+	tx.Submit()
+	return tx.Err()
 }
 
 // CreateTrustLine creates a trustline to asset, with the specified trust limit. An empty

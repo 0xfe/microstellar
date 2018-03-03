@@ -28,7 +28,9 @@ func Example() {
 
 	// Pay someone 1 USD issued by an anchor.
 	USD := NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
-	ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
+	ms.Pay(NewPayment(
+		"S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithAsset(USD))
 
 	// Create a trust line to a credit asset with a limit of 1000.
 	ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
@@ -143,10 +145,37 @@ func ExampleMicroStellar_Pay() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress
-	err := ms.Pay("sourceSeed", "targetAddress", USD, "1")
+	err := ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", ErrorString(err))
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// Payments with memotext and memoid
+func ExampleMicroStellar_Pay_memotext() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Pay 1 USD to targetAddress and set the memotext field
+	err := ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoText("text memo"))
+
+	if err != nil {
+		log.Fatalf("Pay (memotext): %v", ErrorString(err))
+	}
+
+	// Pay 1 USD to targetAddress and set the memotext field
+	err = ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoID(73223))
+
+	if err != nil {
+		log.Fatalf("Pay (memoid): %v", ErrorString(err))
 	}
 
 	fmt.Printf("ok")

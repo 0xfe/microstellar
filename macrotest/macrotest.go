@@ -93,7 +93,7 @@ func runTest(fundSourceSeed string) {
 	}
 
 	log.Print("Issuing USD from issuer to distributor...")
-	err = ms.Pay(keyPair1.Seed, keyPair2.Address, USD, "5000")
+	err = ms.Pay(microstellar.NewPayment(keyPair1.Seed, keyPair2.Address, "5000").WithAsset(USD))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)
@@ -107,14 +107,14 @@ func runTest(fundSourceSeed string) {
 	}
 
 	log.Print("Paying USD from distributor to customer...")
-	err = ms.Pay(keyPair2.Seed, keyPair3.Address, USD, "5000")
+	err = ms.Pay(microstellar.NewPayment(keyPair2.Seed, keyPair3.Address, "5000").WithAsset(USD))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)
 	}
 
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
-	err = ms.Pay(keyPair3.Seed, keyPair2.Address, USD, "5000")
+	err = ms.Pay(microstellar.NewPayment(keyPair3.Seed, keyPair2.Address, "5000").WithAsset(USD).WithMemoText("take it back"))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)

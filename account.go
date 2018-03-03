@@ -4,6 +4,12 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
+// Address represents a stellar address or public key
+type Address string
+
+// Seed represents a stellar seed or private
+type Seed string
+
 // KeyPair represents a key pair for a signer on a stellar account. An account
 // can have multiple signers.
 type KeyPair struct {

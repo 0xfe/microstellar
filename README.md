@@ -12,53 +12,73 @@ go get github.com/0xfe/microstellar
 
 ### Usage
 
+#### Create and fund addresses
+
 ```go
-package main
+// Create a new MicroStellar client connected to the testnet.
+ms := microstellar.New("test")
 
-import (
-	"github.com/0xfe/microstellar"
-)
+// Generate a new random keypair.
+pair, _ := ms.CreateKeyPair()
+log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
-func main() {
-    // Create a new MicroStellar client connected to the testnet.
-    ms := microstellar.New("test")
+// Fund the account with 1 lumen from an existing account.
+ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
 
-    // Generate a new random keypair.
-    pair, _ := ms.CreateKeyPair()
-    log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
+// Fund an account on the test network with Friendbot.
+microstellar.FundWithFriendBot(pair.Address)
+```
 
-    // Fund the account with 1 lumen from an existing account.
-    ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
+#### Check balances
 
-    // Fund an account on the test network with Friendbot.
-    microstellar.FundWithFriendBot(pair.Address)
+```go
+// Now load account details from ledger.
+account, _ := ms.LoadAccount(pair.Address)
+log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+```
 
-    // Now load account details from ledger.
-    account, _ := ms.LoadAccount(pair.Address)
-    log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+#### Make payments
 
-    // Pay someone 3 lumens.
-    ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
+```go
+// Pay someone 3 lumens.
+ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
 
-    // Pay someone 1 USD issued by an anchor.
-    USD := microstellar.NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
-    ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", USD, "3")
+// Set the memo field on a payment
+payment := microstellar.NewPayment(
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithMemoText("thanks for the fish")
+ms.Pay(payment)
+```
 
-    // Create a trust line to a credit asset with a limit of 1000.
-    ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
+#### Work with credit assets
 
-    // Check balance.
-    account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
-    log.Printf("USD Balance: %v USD", account.GetBalance(USD))
-    log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
+```go
+// Create a custom asset with the code "USD" issued by some trusted issuer
+USD := microstellar.NewAsset("USD", "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
 
-    // What's their home domain?
-    log.Printf("Home domain: %s", account.HomeDomain)
+// Create a trust line from an account to the asset, with a limit of 10000
+ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
 
-    // Who are the signers on the account?
-    for i, s := range account.Signers {
-        log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
-    }
+// Make a payment in the asset
+payment := microstellar.NewPayment(
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithAsset(USD).WithMemo("funny money")
+ms.Pay(payment)
+```
+
+#### Other stuff
+
+```go
+// What's their USD balance?
+account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
+log.Printf("USD Balance: %v USD", account.GetBalance(USD))
+
+// What's their home domain?
+log.Printf("Home domain: %s", account.HomeDomain)
+
+// Who are the signers on the account?
+for i, s := range account.Signers {
+    log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
 }
 ```
 
