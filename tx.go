@@ -121,8 +121,8 @@ func (tx *Tx) IsSigned() bool {
 	return tx.payload != ""
 }
 
-// Sign signs the transaction with key.
-func (tx *Tx) Sign(key string) error {
+// Sign signs the transaction with every key in keys.
+func (tx *Tx) Sign(keys ...string) error {
 	if tx.err != nil {
 		return tx.err
 	}
@@ -142,7 +142,7 @@ func (tx *Tx) Sign(key string) error {
 		return nil
 	}
 
-	txe, err := tx.builder.Sign(key)
+	txe, err := tx.builder.Sign(keys...)
 
 	if err != nil {
 		tx.err = err

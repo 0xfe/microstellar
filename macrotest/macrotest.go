@@ -49,7 +49,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 		if err != nil {
 			log.Fatalf("Funding failed: %v", microstellar.ErrorString(err))
 		}
-		log.Printf("Payment sent: 1 lumen")
+		log.Printf("Payment sent: 100 lumens")
 	}
 
 	return *keyPair
@@ -82,11 +82,13 @@ func runTest(fundSourceSeed string) {
 	keyPair2 := createFundedAccount(ms, keyPair1.Seed, false)
 	keyPair3 := createFundedAccount(ms, keyPair1.Seed, false)
 	keyPair4 := createFundedAccount(ms, keyPair1.Seed, false)
+	keyPair5 := createFundedAccount(ms, keyPair1.Seed, false)
 
 	log.Print("Pair1 (issuer): ", keyPair1)
 	log.Print("Pair2 (distributor): ", keyPair2)
 	log.Print("Pair3 (customer): ", keyPair3)
-	log.Print("Pair4 (signer): ", keyPair4)
+	log.Print("Pair4 (signer1): ", keyPair4)
+	log.Print("Pair4 (signer2): ", keyPair5)
 
 	log.Printf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
 	USD := microstellar.NewAsset("USD", keyPair1.Address, microstellar.Credit4Type)
@@ -112,11 +114,51 @@ func runTest(fundSourceSeed string) {
 		log.Fatalf("CreateTrustLine: %v", err)
 	}
 
-	log.Print("Paying USD from distributor to customer...")
-	err = ms.Pay(microstellar.NewPayment(keyPair2.Seed, keyPair3.Address, "5000").WithAsset(USD))
+	log.Printf("Adding new signers to %s (distributor)...", keyPair2.Address)
+	ms.AddSigner(keyPair2.Seed, keyPair4.Address, 1)
+	ms.AddSigner(keyPair2.Seed, keyPair5.Address, 1)
+
+	log.Printf("Killing master weight for %s (distributor)...", keyPair2.Address)
+	err = ms.SetMasterWeight(keyPair2.Seed, 0)
+
+	// See signers for key...
+	showBalance(ms, USD, "distributor", keyPair2.Address)
+
+	log.Print("Paying USD from distributor to customer (with dead master signer)...")
+	err = ms.Pay(
+		microstellar.NewPayment(keyPair2.Seed, keyPair3.Address, "5000").
+			WithAsset(USD).
+			WithMemoText("failed payment"))
 
 	if err != nil {
-		log.Fatalf("Pay: %v", err)
+		log.Printf("Payment correctly failed: %v", microstellar.ErrorString(err))
+	} else {
+		log.Fatalf("Payment suceeded. This should not have happened.")
+	}
+
+	log.Print("Paying USD from distributor to customer (with too many signers)...")
+	err = ms.Pay(
+		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
+			WithAsset(USD).
+			WithMemoText("real payment").
+			WithSigner(keyPair4.Seed).
+			WithSigner(keyPair5.Seed))
+
+	if err != nil {
+		log.Printf("Payment correctly failed (too many signers): %v", microstellar.ErrorString(err))
+	} else {
+		log.Fatalf("Payment succeeded. This should not have happened.")
+	}
+
+	log.Print("Paying USD from distributor to customer (with correct signers)...")
+	err = ms.Pay(
+		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
+			WithAsset(USD).
+			WithMemoText("real payment").
+			WithSigner(keyPair5.Seed))
+
+	if err != nil {
+		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
 	}
 
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
@@ -133,21 +175,10 @@ func runTest(fundSourceSeed string) {
 		log.Fatalf("RemoveTrustLine: %v", err)
 	}
 
-	log.Printf("Adding a new signer to %s (customer)...", keyPair3.Address)
-	err = ms.AddSigner(keyPair3.Seed, keyPair4.Address, 10)
-
-	// See signers for key...
-	showBalance(ms, USD, "customer", keyPair3.Address)
-
-	log.Printf("Killing master weight for %s (customer)...", keyPair3.Address)
-	err = ms.SetMasterWeight(keyPair3.Seed, 0)
-
-	log.Printf("Adding a new signer to %s (customer)...", keyPair3.Address)
-	err = ms.RemoveSigner(keyPair3.Seed, keyPair4.Address)
-
 	showBalance(ms, USD, "issuer", keyPair1.Address)
 	showBalance(ms, USD, "distributor", keyPair2.Address)
 	showBalance(ms, USD, "customer", keyPair3.Address)
+	showBalance(ms, USD, "signer", keyPair4.Address)
 }
 
 func main() {

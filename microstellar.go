@@ -6,6 +6,8 @@
 package microstellar
 
 import (
+	"log"
+
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/keypair"
 )
@@ -95,7 +97,14 @@ func (ms *MicroStellar) Pay(payment *Payment) error {
 	txMuts = append(txMuts, build.Payment(paymentMuts...))
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(payment.sourceSeed), txMuts...)
-	tx.Sign(payment.sourceSeed)
+
+	if len(payment.signerSeeds) > 0 {
+		log.Printf("Signing multi...")
+		tx.Sign(payment.signerSeeds...)
+	} else {
+		tx.Sign(payment.sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }

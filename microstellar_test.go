@@ -182,6 +182,38 @@ func ExampleMicroStellar_Pay_memotext() {
 	// Output: ok
 }
 
+// Makes a multisignature payment
+func ExampleMicroStellar_Pay_multisig() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Pay 1 USD to targetAddress and set the memotext field
+	err := ms.Pay(
+		NewPayment("sourceSeed", "targetAddress", "1").
+			WithAsset(USD).
+			WithMemoText("multisig").
+			WithSigner("SAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ").
+			WithSigner("SBIUIQNMSXTGR4TGZETSQCGBTIF32G2L5D4AML4LFTMTHKM44UABFDMS"))
+
+	if err != nil {
+		log.Fatalf("Pay (memotext): %v", ErrorString(err))
+	}
+
+	// Pay 1 USD to targetAddress and set the memotext field
+	err = ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoID(73223))
+
+	if err != nil {
+		log.Fatalf("Pay (memoid): %v", ErrorString(err))
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
 // This example creates a trust line to a credit asset.
 func ExampleMicroStellar_CreateTrustLine() {
 	// Create a new MicroStellar client connected to a fake network. To

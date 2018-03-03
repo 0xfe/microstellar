@@ -14,6 +14,9 @@ type Payment struct {
 	memoType MemoType // defaults to no memo
 	memoText string   // additional memo text
 	memoID   uint64   // additional memo ID
+
+	// Use WithSigner to add signers to this transaction
+	signerSeeds []string
 }
 
 // MemoType sets the memotype field on the payment request.
@@ -55,5 +58,11 @@ func (p *Payment) WithMemoText(text string) *Payment {
 func (p *Payment) WithMemoID(id uint64) *Payment {
 	p.memoType = MemoID
 	p.memoID = id
+	return p
+}
+
+// WithSigner adds a signer to Payment p
+func (p *Payment) WithSigner(signerSeed string) *Payment {
+	p.signerSeeds = append(p.signerSeeds, signerSeed)
 	return p
 }

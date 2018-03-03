@@ -66,6 +66,24 @@ payment := microstellar.NewPayment(
 ms.Pay(payment)
 ```
 
+#### Multisignature payments
+```go
+// Add two signers with weight 1 to account
+ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 1)
+
+ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G9H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGB", 1)
+
+// Kill the master weight of account, so only the new signers can sign transactions
+ms.SetMasterWeight("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 0)
+
+// Make a payment (and sign with new signers). Note that the first parameter (source) here
+// can be an address instead of a seed (since the seed can't sign anymore.)
+payment := microstellar.NewPayment("G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithSigner("seed1").WithSigner("seed2")
+
+ms.Pay(payment)
+```
+
 #### Other stuff
 
 ```go
