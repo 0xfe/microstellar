@@ -2,6 +2,8 @@
 //
 //   go get github.com/0xfe/microstellar
 //
+// Author: Mohit Muthanna Cheppudira <mohit@muthanna.com>
+//
 // Conventions
 //
 // In Stellar lingo: a private key is called a seed, and a public key is called an address.
@@ -12,8 +14,6 @@
 // If you use "signers", then sourceSeed isn't used to sign -- it can be an address instead of a seed.
 //
 // You can use ErrorString(...) to extract the Horizon error from a returned error.
-//
-// Author: Mohit Muthanna Cheppudira <mohit@muthanna.com>
 package microstellar
 
 import (

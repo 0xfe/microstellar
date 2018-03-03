@@ -23,9 +23,11 @@ type Payment struct {
 type MemoType int
 
 const (
-	MemoNone = MemoType(0) // No memo
-	MemoID   = MemoType(1) // ID memo
-	MemoText = MemoType(2) // Text memo (max 28 characters)
+	MemoNone   = MemoType(0) // No memo
+	MemoID     = MemoType(1) // ID memo
+	MemoText   = MemoType(2) // Text memo (max 28 chars)
+	MemoHash   = MemoType(3) // Hash memo
+	MemoReturn = MemoType(4) // Return hash memo
 )
 
 // NewPayment creates a new payment tx from sourceSeed to targetAddress of

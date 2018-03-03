@@ -1,4 +1,4 @@
-package main
+package macrotest
 
 // This file implements an end-to-end integration test for the
 // microstellar library.
@@ -6,6 +6,7 @@ package main
 import (
 	"log"
 	"strconv"
+	"testing"
 
 	"github.com/0xfe/microstellar"
 )
@@ -73,8 +74,10 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 	}
 }
 
-// This method implements the full end-to-end test
-func runTest(fundSourceSeed string) {
+// TestMicroStellarEndToEnd implements the full end-to-end test
+func TestMicroStellarEndToEnd(t *testing.T) {
+	const fundSourceSeed = "SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX"
+
 	ms := microstellar.New("test")
 
 	// Create a key pair
@@ -197,9 +200,6 @@ func runTest(fundSourceSeed string) {
 	showBalance(ms, USD, "issuer", keyPair1.Address)
 	showBalance(ms, USD, "distributor", keyPair2.Address)
 	showBalance(ms, USD, "customer", keyPair3.Address)
-	showBalance(ms, USD, "signer", keyPair4.Address)
-}
-
-func main() {
-	runTest("SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX")
+	showBalance(ms, USD, "signer1", keyPair4.Address)
+	showBalance(ms, USD, "signer2", keyPair5.Address)
 }
