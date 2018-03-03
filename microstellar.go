@@ -100,7 +100,7 @@ func (ms *MicroStellar) Pay(payment *Payment) error {
 	return tx.Err()
 }
 
-// CreateTrustLine creates a trustline to asset, with the specified trust limit. An empty
+// CreateTrustLine creates a trustline from sourceSeed to asset, with the specified trust limit. An empty
 // limit string indicates no limit.
 func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string) error {
 	tx := NewTx(ms.networkName)
@@ -116,7 +116,7 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 	return tx.Err()
 }
 
-// RemoveTrustLine removes an trustline to an asset.
+// RemoveTrustLine removes an trustline from sourceSeed to an asset
 func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.RemoveTrust(asset.Code, asset.Issuer))
@@ -125,7 +125,7 @@ func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset) error {
 	return tx.Err()
 }
 
-// SetMasterWeight changes the master weight of an account.
+// SetMasterWeight changes the master weight of sourceSeed
 func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.MasterWeight(weight))
@@ -134,8 +134,27 @@ func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32) error 
 	return tx.Err()
 }
 
+// AddSigner adds signerAddress as a signer to sourceSeed's account with weight signerWeight
+func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32) error {
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(sourceSeed), build.AddSigner(signerAddress, signerWeight))
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
+// RemoveSigner removes signerAddress as a signer from sourceSeed's account
+func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string) error {
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(sourceSeed), build.RemoveSigner(signerAddress))
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
 // TODO:
 // AddSigners
 // ChangeSigners
+// Set Thresholds
 // Masterweight
 // Op

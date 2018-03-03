@@ -64,9 +64,13 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 		log.Fatalf("Canl't load balances for %s: %s", name, address)
 	}
 
-	log.Print("  master weight: ", account.GetMasterWeight())
+	log.Print("  Master weight: ", account.GetMasterWeight())
 	log.Print("  XLM: ", account.GetNativeBalance())
 	log.Print("  USD: ", account.GetBalance(asset))
+
+	for i, s := range account.Signers {
+		log.Printf("  signer %d (type: %v, weight: %v): %v", i, s.Type, s.Weight, s.PublicKey)
+	}
 }
 
 // This method implements the full end-to-end test
@@ -77,10 +81,12 @@ func runTest(fundSourceSeed string) {
 	keyPair1 := createFundedAccount(ms, fundSourceSeed, true)
 	keyPair2 := createFundedAccount(ms, keyPair1.Seed, false)
 	keyPair3 := createFundedAccount(ms, keyPair1.Seed, false)
+	keyPair4 := createFundedAccount(ms, keyPair1.Seed, false)
 
 	log.Print("Pair1 (issuer): ", keyPair1)
 	log.Print("Pair2 (distributor): ", keyPair2)
 	log.Print("Pair3 (customer): ", keyPair3)
+	log.Print("Pair4 (signer): ", keyPair4)
 
 	log.Printf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
 	USD := microstellar.NewAsset("USD", keyPair1.Address, microstellar.Credit4Type)
@@ -127,8 +133,17 @@ func runTest(fundSourceSeed string) {
 		log.Fatalf("RemoveTrustLine: %v", err)
 	}
 
+	log.Printf("Adding a new signer to %s (customer)...", keyPair3.Address)
+	err = ms.AddSigner(keyPair3.Seed, keyPair4.Address, 10)
+
+	// See signers for key...
+	showBalance(ms, USD, "customer", keyPair3.Address)
+
 	log.Printf("Killing master weight for %s (customer)...", keyPair3.Address)
 	err = ms.SetMasterWeight(keyPair3.Seed, 0)
+
+	log.Printf("Adding a new signer to %s (customer)...", keyPair3.Address)
+	err = ms.RemoveSigner(keyPair3.Seed, keyPair4.Address)
 
 	showBalance(ms, USD, "issuer", keyPair1.Address)
 	showBalance(ms, USD, "distributor", keyPair2.Address)

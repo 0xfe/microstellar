@@ -247,3 +247,37 @@ func ExampleMicroStellar_SetMasterWeight() {
 	fmt.Printf("ok")
 	// Output: ok
 }
+
+// This example adds a signer to an account.
+func ExampleMicroStellar_AddSigner() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set master weight to zero.
+	err := ms.AddSigner("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A", 10)
+
+	if err != nil {
+		log.Fatalf("AddSigner: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example removes a signer from an account.
+func ExampleMicroStellar_RemoveSigner() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set master weight to zero.
+	err := ms.RemoveSigner("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
+
+	if err != nil {
+		log.Fatalf("RemoveSigner: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
