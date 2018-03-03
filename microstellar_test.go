@@ -14,7 +14,7 @@ func Example() {
 	log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
 	// Fund the account with 1 lumen from an existing account.
-	ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
+	ms.FundAccount("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", pair.Address, "1")
 
 	// Fund an account on the test network with Friendbot.
 	FundWithFriendBot(pair.Address)
@@ -45,6 +45,8 @@ func Example() {
 	for i, s := range account.Signers {
 		log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
 	}
+
+	log.Printf("ok")
 }
 
 // This example creates a key pair and displays the private and
@@ -83,7 +85,7 @@ func ExampleMicroStellar_FundAccount() {
 	}
 
 	// Fund the account with 1 lumen from an existing account.
-	err = ms.FundAccount(pair.Address, "SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "1")
+	err = ms.FundAccount("SD3M3RG4G54JSFIG4RJYPPKTB4G77IPSXKZPTMN5CKAFWNRQP6V24ZDQ", pair.Address, "1")
 
 	if err != nil {
 		log.Fatalf("FundAccount: %v", ErrorString(err))
@@ -123,7 +125,7 @@ func ExampleMicroStellar_PayNative() {
 	ms := New("fake")
 
 	// Pay 1 XLM to targetAddress
-	err := ms.PayNative("sourceSeed", "targetAddress", "1")
+	err := ms.PayNative("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GDS2DXCCTW5VO5A2KCEBHAP3W4XOCJSI2QVHNN63TXVGBUIIW4DI3BCW", "1")
 
 	if err != nil {
 		log.Fatalf("PayNative: %v", ErrorString(err))
@@ -143,7 +145,7 @@ func ExampleMicroStellar_Pay() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress
-	err := ms.Pay("sourceSeed", "targetAddress", "1", USD)
+	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD)
 
 	if err != nil {
 		log.Fatalf("Pay: %v", ErrorString(err))
@@ -160,17 +162,17 @@ func ExampleMicroStellar_Pay_memotext() {
 	ms := New("fake")
 
 	// Custom USD asset issued by specified issuer
-	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+	USD := NewAsset("USD", "GALC5V4UUUICHENN3ZZLQY6UWAC67CMKVXYT4MT7YGQRD6RMXXCAMHP6", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoText("boo"))
+	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoText("boo"))
 
 	if err != nil {
 		log.Fatalf("Pay (memotext): %v", ErrorString(err))
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(42))
+	err = ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoID(42))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))
@@ -190,7 +192,7 @@ func ExampleMicroStellar_Pay_multisig() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay("sourceSeed", "targetAddress", "1", USD,
+	err := ms.Pay("SDKORMIXFL2QW2UC3HWJ4GKL4PYFUMDOPEJMGWVQBW4GWJ5W2ZBOGRSZ", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD,
 		Opts().WithMemoText("multisig").
 			WithSigner("SAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ").
 			WithSigner("SBIUIQNMSXTGR4TGZETSQCGBTIF32G2L5D4AML4LFTMTHKM44UABFDMS"))
@@ -200,7 +202,7 @@ func ExampleMicroStellar_Pay_multisig() {
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(73223))
+	err = ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoID(73223))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))

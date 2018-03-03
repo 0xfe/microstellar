@@ -56,8 +56,8 @@ func (asset Asset) Validate() error {
 		return fmt.Errorf("invalid: Credit12Type assets must not have more than 12 characters")
 	}
 
-	if !asset.IsNative() && asset.Issuer == "" {
-		return fmt.Errorf("invalid: asset has no issuer")
+	if !asset.IsNative() && !ValidAddressOrSeed(asset.Issuer) {
+		return fmt.Errorf("invalid issuer: %s", asset.Issuer)
 	}
 
 	return nil

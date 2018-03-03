@@ -152,6 +152,9 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 	if tx.options != nil {
 		switch tx.options.memoType {
 		case MemoText:
+			if len(tx.options.memoText) > 28 {
+				return fmt.Errorf("Tx.Build: memo text >28 bytes: %v", tx.options.memoText)
+			}
 			muts = append(muts, build.MemoText{Value: tx.options.memoText})
 		case MemoID:
 			muts = append(muts, build.MemoID{Value: tx.options.memoID})

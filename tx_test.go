@@ -13,17 +13,17 @@ func ExampleTxOptions_memotext() {
 	ms := New("fake")
 
 	// Custom USD asset issued by specified issuer
-	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+	USD := NewAsset("USD", "GALC5V4UUUICHENN3ZZLQY6UWAC67CMKVXYT4MT7YGQRD6RMXXCAMHP6", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoText("boo"))
+	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoText("boo"))
 
 	if err != nil {
 		log.Fatalf("Pay (memotext): %v", ErrorString(err))
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(42))
+	err = ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoID(42))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))
@@ -43,7 +43,7 @@ func ExampleTxOptions_multisig() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay("sourceSeed", "targetAddress", "1", USD,
+	err := ms.Pay("SDKORMIXFL2QW2UC3HWJ4GKL4PYFUMDOPEJMGWVQBW4GWJ5W2ZBOGRSZ", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD,
 		Opts().WithMemoText("multisig").
 			WithSigner("SAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ").
 			WithSigner("SBIUIQNMSXTGR4TGZETSQCGBTIF32G2L5D4AML4LFTMTHKM44UABFDMS"))
@@ -53,7 +53,7 @@ func ExampleTxOptions_multisig() {
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(73223))
+	err = ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoID(73223))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))
