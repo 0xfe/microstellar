@@ -94,21 +94,21 @@ func runTest(fundSourceSeed string) {
 	USD := microstellar.NewAsset("USD", keyPair1.Address, microstellar.Credit4Type)
 
 	log.Printf("Creating USD trustline for %s (distributor)...", keyPair2.Address)
-	err := ms.CreateTrustLine(keyPair2.Seed, USD, "10000")
+	err := ms.CreateTrustLine(keyPair2.Seed, USD, "1000000")
 
 	if err != nil {
 		log.Fatalf("CreateTrustLine: %v", err)
 	}
 
 	log.Print("Issuing USD from issuer to distributor...")
-	err = ms.Pay(microstellar.NewPayment(keyPair1.Seed, keyPair2.Address, "5000").WithAsset(USD))
+	err = ms.Pay(microstellar.NewPayment(keyPair1.Seed, keyPair2.Address, "500000").WithAsset(USD))
 
 	if err != nil {
-		log.Fatalf("Pay: %v", err)
+		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
 	}
 
 	log.Printf("Creating USD trustline for %s (customer)...", keyPair3.Address)
-	err = ms.CreateTrustLine(keyPair3.Seed, USD, "10000")
+	err = ms.CreateTrustLine(keyPair3.Seed, USD, "100000")
 
 	if err != nil {
 		log.Fatalf("CreateTrustLine: %v", err)
@@ -131,7 +131,7 @@ func runTest(fundSourceSeed string) {
 			WithMemoText("failed payment"))
 
 	if err != nil {
-		log.Printf("Payment correctly failed: %v", microstellar.ErrorString(err))
+		log.Print("Payment correctly failed.")
 	} else {
 		log.Fatalf("Payment suceeded. This should not have happened.")
 	}
@@ -145,7 +145,7 @@ func runTest(fundSourceSeed string) {
 			WithSigner(keyPair5.Seed))
 
 	if err != nil {
-		log.Printf("Payment correctly failed (too many signers): %v", microstellar.ErrorString(err))
+		log.Print("Payment correctly failed (too many signers).")
 	} else {
 		log.Fatalf("Payment succeeded. This should not have happened.")
 	}
@@ -161,8 +161,27 @@ func runTest(fundSourceSeed string) {
 		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
 	}
 
+	log.Printf("Require a total signing weight of 2 on distributor...")
+	err = ms.SetThresholds(keyPair2.Address, 2, 2, 2, keyPair4.Seed)
+
+	if err != nil {
+		log.Fatalf("SetThresholds failed: %v", microstellar.ErrorString(err))
+	}
+
+	log.Print("Paying USD from distributor to customer (with additional signer)...")
+	err = ms.Pay(
+		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
+			WithAsset(USD).
+			WithMemoText("real payment").
+			WithSigner(keyPair4.Seed).
+			WithSigner(keyPair5.Seed))
+
+	if err != nil {
+		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
+	}
+
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
-	err = ms.Pay(microstellar.NewPayment(keyPair3.Seed, keyPair2.Address, "5000").WithAsset(USD).WithMemoText("take it back"))
+	err = ms.Pay(microstellar.NewPayment(keyPair3.Seed, keyPair2.Address, "10000").WithAsset(USD).WithMemoText("take it back"))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)
@@ -172,7 +191,7 @@ func runTest(fundSourceSeed string) {
 	err = ms.RemoveTrustLine(keyPair3.Seed, USD)
 
 	if err != nil {
-		log.Fatalf("RemoveTrustLine: %v", err)
+		log.Fatalf("RemoveTrustLine: %v", microstellar.ErrorString(err))
 	}
 
 	showBalance(ms, USD, "issuer", keyPair1.Address)

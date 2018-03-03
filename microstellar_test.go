@@ -286,7 +286,7 @@ func ExampleMicroStellar_AddSigner() {
 	// use a real network replace "fake" below with "test" or "public".
 	ms := New("fake")
 
-	// Set master weight to zero.
+	// Add signer to account
 	err := ms.AddSigner("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A", 10)
 
 	if err != nil {
@@ -303,8 +303,25 @@ func ExampleMicroStellar_RemoveSigner() {
 	// use a real network replace "fake" below with "test" or "public".
 	ms := New("fake")
 
-	// Set master weight to zero.
+	// Remove signer from account
 	err := ms.RemoveSigner("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
+
+	if err != nil {
+		log.Fatalf("RemoveSigner: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example sets the signing thresholds for an account
+func ExampleMicroStellar_SetThresholds() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set the low, medium, and high thresholds for an account
+	err := ms.SetThresholds("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", 2, 2, 2)
 
 	if err != nil {
 		log.Fatalf("RemoveSigner: %v", err)

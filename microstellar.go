@@ -2,12 +2,21 @@
 //
 //   go get github.com/0xfe/microstellar
 //
+// Conventions
+//
+// In Stellar lingo: a private key is called a seed, and a public key is called an address.
+//
+// In the methods below, "sourceSeed" is typically the private key of the account that needs to sign the transaction.
+//
+// Most method signatures end with "signers ...string", which lets you add multiple signers to the transaction.
+// If you use "signers", then sourceSeed isn't used to sign -- it can be an address instead of a seed.
+//
+// You can use ErrorString(...) to extract the Horizon error from a returned error.
+//
 // Author: Mohit Muthanna Cheppudira <mohit@muthanna.com>
 package microstellar
 
 import (
-	"log"
-
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/keypair"
 )
@@ -38,15 +47,22 @@ func (ms *MicroStellar) CreateKeyPair() (*KeyPair, error) {
 }
 
 // FundAccount creates a new account out of address by funding it with lumens
-// from sourceSeed. The minimum funding amount today is 0.5 XLM.
-func (ms *MicroStellar) FundAccount(sourceSeed string, address string, amount string) error {
+// from sourceSeed. The minimum funding amount today is 0.5 XLM. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) FundAccount(sourceSeed string, address string, amount string, signers ...string) error {
 	payment := build.CreateAccount(
 		build.Destination{AddressOrSeed: address},
 		build.NativeAmount{Amount: amount})
 
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), payment)
-	tx.Sign(sourceSeed)
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
@@ -99,7 +115,6 @@ func (ms *MicroStellar) Pay(payment *Payment) error {
 	tx.Build(sourceAccount(payment.sourceSeed), txMuts...)
 
 	if len(payment.signerSeeds) > 0 {
-		log.Printf("Signing multi...")
 		tx.Sign(payment.signerSeeds...)
 	} else {
 		tx.Sign(payment.sourceSeed)
@@ -110,8 +125,9 @@ func (ms *MicroStellar) Pay(payment *Payment) error {
 }
 
 // CreateTrustLine creates a trustline from sourceSeed to asset, with the specified trust limit. An empty
-// limit string indicates no limit.
-func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string) error {
+// limit string indicates no limit. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string, signers ...string) error {
 	tx := NewTx(ms.networkName)
 
 	if limit == "" {
@@ -120,50 +136,93 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 		tx.Build(sourceAccount(sourceSeed), build.Trust(asset.Code, asset.Issuer, build.Limit(limit)))
 	}
 
-	tx.Sign(sourceSeed)
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
 
-// RemoveTrustLine removes an trustline from sourceSeed to an asset
-func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset) error {
+// RemoveTrustLine removes an trustline from sourceSeed to an asset. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, signers ...string) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.RemoveTrust(asset.Code, asset.Issuer))
-	tx.Sign(sourceSeed)
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
 
-// SetMasterWeight changes the master weight of sourceSeed
-func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32) error {
+// SetMasterWeight changes the master weight of sourceSeed. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32, signers ...string) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.MasterWeight(weight))
-	tx.Sign(sourceSeed)
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
 
-// AddSigner adds signerAddress as a signer to sourceSeed's account with weight signerWeight
-func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32) error {
+// AddSigner adds signerAddress as a signer to sourceSeed's account with weight signerWeight. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32, signers ...string) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.AddSigner(signerAddress, signerWeight))
-	tx.Sign(sourceSeed)
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
 
-// RemoveSigner removes signerAddress as a signer from sourceSeed's account
-func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string) error {
+// RemoveSigner removes signerAddress as a signer from sourceSeed's account. If "signers" exist,
+// then sourceSeed can be an address, and the transaction will be signed with the list of seeds
+// in "signers."
+func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, signers ...string) error {
 	tx := NewTx(ms.networkName)
 	tx.Build(sourceAccount(sourceSeed), build.RemoveSigner(signerAddress))
-	tx.Sign(sourceSeed)
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
 	tx.Submit()
 	return tx.Err()
 }
 
-// TODO:
-// AddSigners
-// ChangeSigners
-// Set Thresholds
-// Masterweight
-// Op
+// SetThresholds sets the signing thresholds for the account. If "signers" exists then sourceSeed
+// can be an address, and the transaction will be signed with the list of seeds in "signers."
+func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint32, signers ...string) error {
+	tx := NewTx(ms.networkName)
+	tx.Build(sourceAccount(sourceSeed), build.SetThresholds(low, medium, high))
+
+	if len(signers) > 0 {
+		tx.Sign(signers...)
+	} else {
+		tx.Sign(sourceSeed)
+	}
+
+	tx.Submit()
+	return tx.Err()
+}

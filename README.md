@@ -46,7 +46,8 @@ ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ
 // Set the memo field on a payment
 payment := microstellar.NewPayment(
   "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithMemoText("thanks for the fish")
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
+  WithMemoText("thanks for the fish")
 ms.Pay(payment)
 ```
 
@@ -62,7 +63,9 @@ ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", U
 // Make a payment in the asset
 payment := microstellar.NewPayment(
   "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithAsset(USD).WithMemo("funny money")
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
+  WithAsset(USD).
+  WithMemo("funny money")
 ms.Pay(payment)
 ```
 
@@ -73,13 +76,22 @@ ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G6H4HQ
 
 ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G9H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGB", 1)
 
+// Set the low, medium, and high thresholds of the account. (Here we require a minimum
+// total signing weight of 2 for all operations.)
+ms.SetThresholds("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 2, 2, 2)
+
 // Kill the master weight of account, so only the new signers can sign transactions
-ms.SetMasterWeight("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 0)
+ms.SetMasterWeight("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 0,
+   // signed by one of the new signers
+   "S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA")
 
 // Make a payment (and sign with new signers). Note that the first parameter (source) here
 // can be an address instead of a seed (since the seed can't sign anymore.)
-payment := microstellar.NewPayment("G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithSigner("seed1").WithSigner("seed2")
+payment := microstellar.NewPayment(
+  "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
+  WithSigner("S1H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA").
+  WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA")
 
 ms.Pay(payment)
 ```
@@ -111,11 +123,12 @@ for i, s := range account.Signers {
 * Lookup balances, home domain, and account signers
 * Payment of native and custom assets
 * Add and remove trust lines
-* Change key weights
+* Multisig accounts -- add/remove signers and make multisig payments.
 
 ### Coming Soon
 
 * Offer management
+* Path payments
 * Streaming ledger data (transactions, offers, etc.)
 * Operations and options
 
