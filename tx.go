@@ -21,12 +21,12 @@ type Tx struct {
 	networkName string
 	network     build.Network
 	fake        bool
+	options     *TxOptions
 	builder     *build.TransactionBuilder
 	payload     string
 	submitted   bool
 	response    *horizon.TransactionSuccess
 	err         error
-	options     *TxOptions
 }
 
 // NewTx returns a new Tx that operates on networkName ("test", "public".)
@@ -53,6 +53,7 @@ func NewTx(networkName string) *Tx {
 		client:      client,
 		network:     network,
 		fake:        fake,
+		options:     nil,
 		builder:     nil,
 		payload:     "",
 		submitted:   false,
@@ -89,7 +90,7 @@ func (tx *Tx) Response() string {
 
 // Reset clears all internal state, so you can run a new operation.
 func (tx *Tx) Reset() {
-	tx.err = nil
+	tx.options = nil
 	tx.builder = nil
 	tx.payload = ""
 	tx.submitted = false
