@@ -28,9 +28,7 @@ func Example() {
 
 	// Pay someone 1 USD issued by an anchor.
 	USD := NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
-	ms.Pay(NewPayment(
-		"S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").WithAsset(USD))
+	ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3", USD)
 
 	// Create a trust line to a credit asset with a limit of 1000.
 	ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
@@ -145,7 +143,7 @@ func ExampleMicroStellar_Pay() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress
-	err := ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD))
+	err := ms.Pay("sourceSeed", "targetAddress", "1", USD)
 
 	if err != nil {
 		log.Fatalf("Pay: %v", ErrorString(err))
@@ -165,14 +163,14 @@ func ExampleMicroStellar_Pay_memotext() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoText("text memo"))
+	err := ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoText("boo"))
 
 	if err != nil {
 		log.Fatalf("Pay (memotext): %v", ErrorString(err))
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoID(73223))
+	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(42))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))
@@ -192,10 +190,8 @@ func ExampleMicroStellar_Pay_multisig() {
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err := ms.Pay(
-		NewPayment("sourceSeed", "targetAddress", "1").
-			WithAsset(USD).
-			WithMemoText("multisig").
+	err := ms.Pay("sourceSeed", "targetAddress", "1", USD,
+		Opts().WithMemoText("multisig").
 			WithSigner("SAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ").
 			WithSigner("SBIUIQNMSXTGR4TGZETSQCGBTIF32G2L5D4AML4LFTMTHKM44UABFDMS"))
 
@@ -204,7 +200,7 @@ func ExampleMicroStellar_Pay_multisig() {
 	}
 
 	// Pay 1 USD to targetAddress and set the memotext field
-	err = ms.Pay(NewPayment("sourceSeed", "targetAddress", "1").WithAsset(USD).WithMemoID(73223))
+	err = ms.Pay("sourceSeed", "targetAddress", "1", USD, Opts().WithMemoID(73223))
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))

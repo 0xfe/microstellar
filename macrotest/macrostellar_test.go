@@ -46,7 +46,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 
 	if floatBalance == 0 {
 		log.Printf("Looks like it's empty. Funding via source account...")
-		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "100")
+		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "100", microstellar.Opts().WithMemoText("initial fund"))
 		if err != nil {
 			log.Fatalf("Funding failed: %v", microstellar.ErrorString(err))
 		}
@@ -104,7 +104,7 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	}
 
 	log.Print("Issuing USD from issuer to distributor...")
-	err = ms.Pay(microstellar.NewPayment(keyPair1.Seed, keyPair2.Address, "500000").WithAsset(USD))
+	err = ms.Pay(keyPair1.Seed, keyPair2.Address, "500000", USD)
 
 	if err != nil {
 		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
@@ -128,10 +128,7 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	showBalance(ms, USD, "distributor", keyPair2.Address)
 
 	log.Print("Paying USD from distributor to customer (with dead master signer)...")
-	err = ms.Pay(
-		microstellar.NewPayment(keyPair2.Seed, keyPair3.Address, "5000").
-			WithAsset(USD).
-			WithMemoText("failed payment"))
+	err = ms.Pay(keyPair2.Seed, keyPair3.Address, "5000", USD, microstellar.Opts().WithMemoText("failed payment"))
 
 	if err != nil {
 		log.Print("Payment correctly failed.")
@@ -140,9 +137,8 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	}
 
 	log.Print("Paying USD from distributor to customer (with too many signers)...")
-	err = ms.Pay(
-		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
-			WithAsset(USD).
+	err = ms.Pay(keyPair2.Address, keyPair3.Address, "5000", USD,
+		microstellar.Opts().
 			WithMemoText("real payment").
 			WithSigner(keyPair4.Seed).
 			WithSigner(keyPair5.Seed))
@@ -154,9 +150,8 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	}
 
 	log.Print("Paying USD from distributor to customer (with correct signers)...")
-	err = ms.Pay(
-		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
-			WithAsset(USD).
+	err = ms.Pay(keyPair2.Address, keyPair3.Address, "5000", USD,
+		microstellar.Opts().
 			WithMemoText("real payment").
 			WithSigner(keyPair5.Seed))
 
@@ -165,16 +160,15 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	}
 
 	log.Printf("Require a total signing weight of 2 on distributor...")
-	err = ms.SetThresholds(keyPair2.Address, 2, 2, 2, keyPair4.Seed)
+	err = ms.SetThresholds(keyPair2.Address, 2, 2, 2, microstellar.NewTxOptions().WithSigner(keyPair4.Seed))
 
 	if err != nil {
 		log.Fatalf("SetThresholds failed: %v", microstellar.ErrorString(err))
 	}
 
 	log.Print("Paying USD from distributor to customer (with additional signer)...")
-	err = ms.Pay(
-		microstellar.NewPayment(keyPair2.Address, keyPair3.Address, "5000").
-			WithAsset(USD).
+	err = ms.Pay(keyPair2.Address, keyPair3.Address, "5000", USD,
+		microstellar.Opts().
 			WithMemoText("real payment").
 			WithSigner(keyPair4.Seed).
 			WithSigner(keyPair5.Seed))
@@ -184,7 +178,8 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	}
 
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
-	err = ms.Pay(microstellar.NewPayment(keyPair3.Seed, keyPair2.Address, "10000").WithAsset(USD).WithMemoText("take it back"))
+	err = ms.Pay(keyPair3.Seed, keyPair2.Address, "10000", USD,
+		microstellar.Opts().WithMemoText("take it back"))
 
 	if err != nil {
 		log.Fatalf("Pay: %v", err)

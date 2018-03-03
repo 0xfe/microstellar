@@ -23,7 +23,10 @@ pair, _ := ms.CreateKeyPair()
 log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
 // Fund the account with 1 lumen from an existing account.
-ms.FundAccount(pair.Address, "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "1")
+ms.FundAccount(
+  pair.Address, // fund this address
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from here
+  "1") // amount
 
 // Fund an account on the test network with Friendbot.
 microstellar.FundWithFriendBot(pair.Address)
@@ -41,40 +44,52 @@ log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 
 ```go
 // Pay someone 3 lumens.
-ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
+ms.PayNative(
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
+  "3")
 
 // Set the memo field on a payment
-payment := microstellar.NewPayment(
-  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
-  WithMemoText("thanks for the fish")
-ms.Pay(payment)
+ms.Pay(
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
+  "3", microstellar.Opts().WithMemoText("thanks for the fish"))
 ```
 
 #### Work with credit assets
 
 ```go
 // Create a custom asset with the code "USD" issued by some trusted issuer
-USD := microstellar.NewAsset("USD", "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
+USD := microstellar.NewAsset(
+  "USD", // asset code
+  "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // issuer address
+  Credit4Type) // asset type (Credit4Type, Credit12Type, NativeType)
 
 // Create a trust line from an account to the asset, with a limit of 10000
-ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
+ms.CreateTrustLine(
+  "S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // source account
+  USD,     // asset to trust
+  "10000") // max holdings of this asset
 
 // Make a payment in the asset
-payment := microstellar.NewPayment(
-  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
-  WithAsset(USD).
-  WithMemo("funny money")
-ms.Pay(payment)
+ms.Pay(
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
+  USD, 10, microstellar.Opts().WithMemo("funny money"))
 ```
 
 #### Multisignature payments
 ```go
 // Add two signers with weight 1 to account
-ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 1)
+ms.AddSigner(
+  "S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // source account
+  "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // signer address
+  1) // weight
 
-ms.AddSigner("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "G9H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGB", 1)
+ms.AddSigner(
+  "S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // source account
+  "G9H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGB", // signer address
+  1) // weight
 
 // Set the low, medium, and high thresholds of the account. (Here we require a minimum
 // total signing weight of 2 for all operations.)
@@ -82,18 +97,18 @@ ms.SetThresholds("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 2, 
 
 // Kill the master weight of account, so only the new signers can sign transactions
 ms.SetMasterWeight("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 0,
-   // signed by one of the new signers
-   "S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA")
+   microstellar.Opts().WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"))
 
 // Make a payment (and sign with new signers). Note that the first parameter (source) here
 // can be an address instead of a seed (since the seed can't sign anymore.)
-payment := microstellar.NewPayment(
-  "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
-  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3").
-  WithSigner("S1H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA").
-  WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA")
+ms.PayNative(
+  "G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from
+  "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
+  "3", // amount
+  microstellar.Opts().
+    WithSigner("S1H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA").
+    WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"))
 
-ms.Pay(payment)
 ```
 
 #### Other stuff
