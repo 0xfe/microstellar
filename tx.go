@@ -2,6 +2,7 @@ package microstellar
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/stellar/go/build"
@@ -29,23 +30,47 @@ type Tx struct {
 	err         error
 }
 
-// NewTx returns a new Tx that operates on networkName ("test", "public".)
-func NewTx(networkName string) *Tx {
+// NewTx returns a new Tx that operates on the network specified by
+// networkName. The supported networks are:
+//
+//    public: the public horizon network
+//    test: the public horizon testnet
+//    fake: a fake network used for tests
+//    custom: a custom network specified by the parameters
+//
+// If you're using "custom", provide the URL and Passphrase to your
+// horizon network server in the parameters.
+//
+//    NewTx("custom", Params{
+//        "url": "https://my-horizon-server.com",
+//        "passphrase": "foobar"})
+func NewTx(networkName string, params ...Params) *Tx {
 	var network build.Network
 	var client *horizon.Client
 
 	fake := false
 
-	if networkName == "test" {
+	switch networkName {
+	case "public":
 		network = build.TestNetwork
 		client = horizon.DefaultTestNetClient
-	} else if networkName == "fake" {
+	case "test":
+		network = build.TestNetwork
+		client = horizon.DefaultTestNetClient
+	case "fake":
 		network = build.TestNetwork
 		client = horizon.DefaultTestNetClient
 		fake = true
-	} else {
-		network = build.PublicNetwork
-		client = horizon.DefaultPublicNetClient
+	case "custom":
+		network = build.Network{params[0]["passphrase"].(string)}
+		client = &horizon.Client{
+			URL:  params[0]["url"].(string),
+			HTTP: http.DefaultClient,
+		}
+	default:
+		// use the test network
+		network = build.TestNetwork
+		client = horizon.DefaultTestNetClient
 	}
 
 	return &Tx{

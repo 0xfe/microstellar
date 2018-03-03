@@ -29,13 +29,37 @@ import (
 // to create a new instance.
 type MicroStellar struct {
 	networkName string
+	params      Params
 	fake        bool
 }
 
-// New returns a new MicroStellar client connected to networkName ("test", "public")
-func New(networkName string) *MicroStellar {
+// Params lets you add optional parameters to New and NewTx.
+type Params map[string]interface{}
+
+// New returns a new MicroStellar client connected that operates on the network
+// specified by networkName. The supported networks are:
+//
+//    public: the public horizon network
+//    test: the public horizon testnet
+//    fake: a fake network used for tests
+//    custom: a custom network specified by the parameters
+//
+// If you're using "custom", provide the URL and Passphrase to your
+// horizon network server in the parameters.
+//
+//    NewTx("custom", Params{
+//        "url": "https://my-horizon-server.com",
+//        "passphrase": "foobar"})
+func New(networkName string, params ...Params) *MicroStellar {
+	var p Params
+
+	if len(params) > 0 {
+		p = params[0]
+	}
+
 	return &MicroStellar{
 		networkName: networkName,
+		params:      p,
 		fake:        networkName == "fake",
 	}
 }
