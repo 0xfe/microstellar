@@ -136,21 +136,16 @@ ms.PayNative(
 #### Streaming
 
 ```go
-// Create a new MicroStellar client connected to a fake network. To
-// use a real network replace "fake" below with "test" or "public".
-ms := New("test")
-
 // Watch for payments to address. (The fake network sends payments every 200ms.)
 watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A",
-	Opts().WithContext(context.Background()))
+  Opts().WithContext(context.Background()))
 
 go func() {
-	for p := range watcher.Ch {
-    log.Printf("WatchPayments %d: %v -- %v %v from %v to %v\n",
-      paymentsReceived, p.Type, p.Amount, p.AssetCode, p.From, p.To)
-	}
-
-	log.Printf("WatchPayments Done -- Error: %v\n", *watcher.StreamError)
+  for p := range watcher.Ch {
+    log.Printf("WatchPayments: %v -- %v %v from %v to %v\n",
+      p.Type, p.Amount, p.AssetCode, p.From, p.To)
+  }
+  log.Printf("WatchPayments Done -- Error: %v\n", *watcher.StreamError)
 }()
 
 // Stream the ledger for about a second then stop the watcher.
