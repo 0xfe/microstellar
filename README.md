@@ -137,8 +137,7 @@ ms.PayNative(
 
 ```go
 // Watch for payments to address. (The fake network sends payments every 200ms.)
-watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A",
-  Opts().WithContext(context.Background()))
+watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
 
 go func() {
   for p := range watcher.Ch {

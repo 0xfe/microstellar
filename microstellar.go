@@ -331,8 +331,8 @@ type PaymentWatcher struct {
 // WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
 // TxOptions.WithContext to set a context.Context, and TxOptions.WithCursor to set a cursor.
 func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*PaymentWatcher, error) {
-	if !ValidAddressOrSeed(address) {
-		return nil, errors.Errorf("can't watch payments: invalid address or seed: %s", address)
+	if err := ValidAddress(address); err != nil {
+		return nil, errors.Errorf("can't watch payments, invalid address: %s", address)
 	}
 
 	tx := NewTx(ms.networkName, ms.params)
