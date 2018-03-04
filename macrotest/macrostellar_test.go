@@ -115,7 +115,7 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 			paymentsReceived++
 		}
 
-		log.Printf("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.StreamError)
+		log.Printf("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.Err)
 	}()
 
 	log.Printf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)

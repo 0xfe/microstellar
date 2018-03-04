@@ -325,7 +325,7 @@ type PaymentWatcher struct {
 
 	// This is set if the stream terminates unexpectedly. Safe to check
 	// after Ch is closed.
-	StreamError *error
+	Err *error
 }
 
 // WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
@@ -348,9 +348,7 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*P
 			c := horizon.Cursor(options[0].cursor)
 			cursor = &c
 		}
-		if options[0].ctx != nil {
-			ctx = options[0].ctx
-		}
+		ctx = options[0].ctx
 	}
 
 	if ctx == nil {

@@ -411,7 +411,7 @@ func ExampleMicroStellar_WatchPayments() {
 			log.Printf("WatchPayments %d: %v -- %v %v from %v to %v\n", paymentsReceived, p.Type, p.Amount, p.AssetCode, p.From, p.To)
 		}
 
-		log.Printf("## WatchPayments ## Done -- Error: %v\n", *watcher.StreamError)
+		log.Printf("## WatchPayments ## Done -- Error: %v\n", *watcher.Err)
 	}()
 
 	// Stream the ledger for about a second then stop the watcher.
