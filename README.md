@@ -1,6 +1,8 @@
-# MicroStellar
+# MicroStellar [![Build Status](https://travis-ci.org/0xfe/microstellar.svg?branch=master)](https://travis-ci.org/0xfe/microstellar)
 
-MicroStellar is an easy-to-use and fully functional (WIP) Go client for the Stellar network. See [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+MicroStellar is an easy-to-use and fully functional (WIP) Go client for the Stellar blockchain. See the [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+
+MicroStellar is a production of [0xFE Industries](https://github.com/0xfe).
 
 ## QuickStart
 
@@ -15,28 +17,43 @@ go get github.com/0xfe/microstellar
 #### Create and fund addresses
 
 ```go
-// Create a new MicroStellar client connected to the testnet.
+// Create a new MicroStellar client connected to the testnet. Use "public" to
+// connect to public horizon servers, or "custom" to connect to your own instance.
 ms := microstellar.New("test")
 
-// Generate a new random keypair.
+// Generate a new random keypair. In stellar lingo, a "seed" is a private key, and
+// an "address" is a public key. (Not techincally accurate, but you get the picture.)
+//
+// Seed strings begin with "S" -- "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"
+// Address strings begin with "G" -- "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM"
 pair, _ := ms.CreateKeyPair()
-log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
+log.Print(pair.Seed, pair.Address)
 
-// Fund the account with 1 lumen from an existing account.
+// In stellar, you can create all kinds of asset types -- dollars, houses, kittens. These
+// customized assets are called credit assets.
+//
+// But the native asset is lumens (XLM). Lumens are used to pay for transactions on the
+// stellar network, and are used to fund the operations of Stellar.
+//
+// When you first create a key pair, you need to fund it with atleast 0.5 lumens. This
+// is called the "base reserve", and makes the account valid. You can only transact to
+// and from accounts that maintain the base reserve.
 ms.FundAccount(
-  pair.Address, // fund this address
-  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from here
-  "1") // amount
+  "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // func source
+  pair.Address,                                               // fund destination
+  "1")                                                        // amount in lumens (XLM)
 
-// Fund an account on the test network with Friendbot.
+// On the test network, you can ask FriendBot to fund your account. You don't need to buy
+// lumens. (If you do want to buy lumens for the test network, call me!)
 microstellar.FundWithFriendBot(pair.Address)
 ```
 
 #### Check balances
 
 ```go
-// Now load account details from ledger.
+// Now load the account details from the ledger.
 account, _ := ms.LoadAccount(pair.Address)
+
 log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 ```
 
@@ -204,7 +221,8 @@ go test -v ./...
 This package uses semver versioning:
 
 ```
-git tag -a v0.1.0
+git tag v0.1.0
+git push --tags
 ```
 
 ## MIT License
