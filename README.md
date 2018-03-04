@@ -190,6 +190,15 @@ godoc -v -http=:6060
 
 Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
 
+### Updating dependencies
+
+```
+dep ensure -update
+
+# rinse and repeat
+go test -v
+```
+
 ## MIT License
 
 Copyright Mohit Muthanna Cheppudira 2018 <mohit@muthanna.com>

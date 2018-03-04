@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/0xfe/stellar-go/strkey"
 	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/strkey"
 )
 
 type AddressOrSeed string

@@ -3,12 +3,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/0xfe/stellar-go"
-  packages = ["strkey"]
-  revision = "b785d8f9e038c2a132db5df86f5c868984ac2ca7"
-
-[[projects]]
-  branch = "master"
   name = "github.com/agl/ed25519"
   packages = [
     ".",
@@ -107,7 +101,7 @@
     "support/render/problem",
     "xdr"
   ]
-  revision = "5dc8fbf25600c933d679dd14fb5eb0701d9540c4"
+  revision = "0d276af676e575b5f29e047f88c7a774057765db"
 
 [[projects]]
   name = "github.com/stretchr/objx"
@@ -148,6 +142,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cc6c0c3219c112b2dd3fc2e870633384196268a3974fa60cde55ea76052cc82b"
+  inputs-digest = "cd959106f85dc21ecbb4a1217d854b2857f0a1345c4c08d5d57d156d106b8060"
   solver-name = "gps-cdcl"
   solver-version = 1
