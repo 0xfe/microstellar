@@ -173,7 +173,7 @@ dep ensure
 Run all unit tests:
 
 ```
-go test -v
+go test -v ./...
 ```
 
 Run end-to-end integration test:
@@ -196,7 +196,15 @@ Then: http://localhost:6060/pkg/github.com/0xfe/microstellar/
 dep ensure -update
 
 # rinse and repeat
-go test -v
+go test -v ./...
+```
+
+### Versioning
+
+This package uses semver versioning:
+
+```
+git tag -a v0.1.0
 ```
 
 ## MIT License
