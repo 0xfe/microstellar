@@ -71,8 +71,6 @@ func TestTx(t *testing.T) {
 
 	err := tx.Sign(keyPair.Seed)
 
-	fmt.Printf("Error: %+v", err)
-
 	if err == nil {
 		t.Errorf("signing should not succeed: want %v, got nil", err)
 	}
