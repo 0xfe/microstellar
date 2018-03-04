@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/pkg/errors"
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/strkey"
 )
@@ -14,13 +15,13 @@ type AddressOrSeed string
 // ValidAddress returns error if address is an invalid stellar address
 func ValidAddress(address string) error {
 	_, err := strkey.Decode(strkey.VersionByteAccountID, address)
-	return err
+	return errors.Wrap(err, "invalid address")
 }
 
 // ValidSeed returns error if the seed is invalid
 func ValidSeed(seed string) error {
 	_, err := strkey.Decode(strkey.VersionByteSeed, seed)
-	return err
+	return errors.Wrap(err, "invalid seed")
 }
 
 // ValidAddressOrSeed returns true if the string is a valid address or seed
@@ -34,21 +35,27 @@ func ValidAddressOrSeed(addressOrSeed string) bool {
 	return err == nil
 }
 
-// HorizonErrorString parses the horizon error out of err.
+// ErrorString parses the horizon error out of err.
 func ErrorString(err error) string {
 	var errorString string
-	herr, isHorizonError := err.(*horizon.Error)
+	herr, isHorizonError := errors.Cause(err).(*horizon.Error)
 
 	if isHorizonError {
+		errorString += fmt.Sprintf("Horizon error: \n")
+
 		resultCodes, err := herr.ResultCodes()
-		if err != nil {
-			errorString = fmt.Sprintf("%v", err)
+		if err == nil {
+			errorString += fmt.Sprintf("  error code: %v\n", resultCodes)
 		}
-		errorString = fmt.Sprintf("Codes: %v, Problem: %v", resultCodes, herr.Problem)
-	} else {
-		errorString = fmt.Sprintf("%v", err)
+
+		errorString += fmt.Sprintf("  %v: %v\n  detail: %v\n  type: %v\n",
+			herr.Problem.Status,
+			herr.Problem.Title,
+			herr.Problem.Detail,
+			herr.Problem.Type)
 	}
 
+	errorString += fmt.Sprintf("\nStack trace:\n%+v\n", err)
 	return errorString
 }
 

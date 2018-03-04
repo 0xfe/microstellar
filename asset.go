@@ -1,6 +1,8 @@
 package microstellar
 
-import "fmt"
+import (
+	"github.com/pkg/errors"
+)
 
 // AssetType represents an asset type on the stellar network.
 type AssetType string
@@ -51,13 +53,13 @@ func (asset Asset) IsNative() bool {
 // Validate returns error if the asset is not valid.
 func (asset Asset) Validate() error {
 	if asset.Type == Credit4Type && len(asset.Code) > 4 {
-		return fmt.Errorf("invalid: Credit4Type assets must not have more than 4 characters")
+		return errors.Errorf("invalid: Credit4Type assets must not have more than 4 characters")
 	} else if asset.Type == Credit12Type && len(asset.Code) > 12 {
-		return fmt.Errorf("invalid: Credit12Type assets must not have more than 12 characters")
+		return errors.Errorf("invalid: Credit12Type assets must not have more than 12 characters")
 	}
 
 	if !asset.IsNative() && !ValidAddressOrSeed(asset.Issuer) {
-		return fmt.Errorf("invalid issuer: %s", asset.Issuer)
+		return errors.Errorf("invalid issuer: %s", asset.Issuer)
 	}
 
 	return nil
