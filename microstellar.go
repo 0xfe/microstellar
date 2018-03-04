@@ -7,12 +7,16 @@
 // Usage notes
 //
 // In Stellar lingo, a private key is called a seed, and a public key is called an address. Seed
-// strings start with "S", and address strings start with "G".
+// strings start with "S", and address strings start with "G". (Not techincally accurate, but you
+// get the picture.)
 //
-// In the methods below, "sourceSeed" is typically the private key of the account that needs
-// to sign the transaction.
+//   Seed:    S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA
+//   Address: GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM
 //
-// Most methods allow you to add a *TxOptions struct at the end, which set extra parameters on the
+// In most the methods below, the first parameter is usually "sourceSeed", which should be the
+// seed of the account that signs the transaction.
+//
+// You can add a *TxOptions struct to the end of many methods, which set extra parameters on the
 // submitted transaction. If you add new signers via TxOptions, then sourceSeed will not be used to sign
 // the transaction -- and it's okay to use a public address instead of a seed for sourceSeed.
 // See examples for how to use TxOptions.

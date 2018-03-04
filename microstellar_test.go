@@ -6,45 +6,103 @@ import (
 )
 
 func Example() {
-	// Create a new MicroStellar client connected to the testnet.
-	ms := New("test")
+	// Create a new MicroStellar client connected to a mock network.
+	ms := New("fake")
 
 	// Generate a new random keypair.
 	pair, _ := ms.CreateKeyPair()
-	log.Printf("Private seed: %s, Public address: %s", pair.Seed, pair.Address)
 
-	// Fund the account with 1 lumen from an existing account.
+	// In stellar, you can create all kinds of asset types -- dollars, houses, kittens. These
+	// customized assets are called credit assets.
+	//
+	// However, the native asset is always lumens (XLM). Lumens are used to pay for transactions
+	// on the stellar network, and are used to fund the operations of Stellar.
+	//
+	// When you first create a key pair, you need to fund it with atleast 0.5 lumens. This
+	// is called the "base reserve", and makes the account valid. You can only transact to
+	// and from accounts that maintain the base reserve.
 	ms.FundAccount("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", pair.Address, "1")
 
-	// Fund an account on the test network with Friendbot.
+	// On the test network, you can ask FriendBot to fund your account. You don't need to buy
+	// lumens. (If you do want to buy lumens for the test network, call me!)
 	FundWithFriendBot(pair.Address)
 
-	// Now load account details from ledger.
+	// Now load the account from the ledger and check its balance.
 	account, _ := ms.LoadAccount(pair.Address)
 	log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 
-	// Pay someone 3 lumens.
-	ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
+	// Note that we used GetNativeBalance() above, which implies lumens as the asset. You
+	// could also do the following.
+	log.Printf("Native Balance: %v XLM", account.GetBalance(NativeAsset))
 
-	// Pay someone 1 USD issued by an anchor.
-	USD := NewAsset("USD", "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", Credit4Type)
-	ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3", USD)
+	// Pay your buddy 3 lumens.
+	ms.PayNative("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3")
 
-	// Create a trust line to a credit asset with a limit of 1000.
+	// Alternatively, be explicit about lumens.
+	ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", "3", NativeAsset)
+
+	// Create a credit asset called USD issued by anchor GAT5GKDILNY2G6NOBEIX7XMGSPPZD5MCHZ47MGTW4UL6CX55TKIUNN53
+	USD := NewAsset("USD", "GAT5GKDILNY2G6NOBEIX7XMGSPPZD5MCHZ47MGTW4UL6CX55TKIUNN53", Credit4Type)
+
+	// Pay your buddy 3 USD and add a memo
+	ms.Pay("S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA",
+		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM",
+		"3", USD,
+		Opts().WithMemoText("for beer"))
+
+	// Create a trust line to the USD credit asset with a limit of 1000.
 	ms.CreateTrustLine("S4H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", USD, "10000")
 
-	// Check balance.
+	// Check your balances.
 	account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
 	log.Printf("USD Balance: %v USD", account.GetBalance(USD))
 	log.Printf("Native Balance: %v XLM", account.GetNativeBalance())
 
-	// What's their home domain?
+	// Find your home domain.
 	log.Printf("Home domain: %s", account.HomeDomain)
 
 	// Who are the signers on the account?
 	for i, s := range account.Signers {
 		log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
 	}
+
+	log.Printf("ok")
+}
+
+func Example_multisig() {
+	// Create a new MicroStellar client connected to a mock network.
+	ms := New("fake")
+
+	// Add two signers to the source account with weight 1 each
+	ms.AddSigner(
+		"S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // source account
+		"G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // signer address
+		1) // weight
+
+	ms.AddSigner(
+		"S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // source account
+		"G9H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGB", // signer address
+		1) // weight
+
+	// Set the low, medium, and high thresholds of the account. (Here we require a minimum
+	// total signing weight of 2 for all operations.)
+	ms.SetThresholds("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 2, 2, 2)
+
+	// Kill the master weight of account, so only the new signers can sign transactions
+	ms.SetMasterWeight("S8H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", 0,
+		Opts().WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"))
+
+	// Make a payment (and sign with new signers). Note that the first parameter (source) here
+	// can be an address instead of a seed (since the seed can't sign anymore.)
+	ms.PayNative(
+		"G6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA", // from
+		"GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
+		"3", // amount
+		Opts().
+			WithSigner("S1H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA").
+			WithSigner("S2H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"))
 
 	log.Printf("ok")
 }
