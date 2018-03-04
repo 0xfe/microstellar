@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/0xfe/stellar-go"
+  packages = ["strkey"]
+  revision = "b785d8f9e038c2a132db5df86f5c868984ac2ca7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/agl/ed25519"
   packages = [
     ".",
@@ -142,6 +148,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "13a2a6d53a093e0654af6e6c74ac9011acee006d3b7465b26c5846929413178b"
+  inputs-digest = "cc6c0c3219c112b2dd3fc2e870633384196268a3974fa60cde55ea76052cc82b"
   solver-name = "gps-cdcl"
   solver-version = 1

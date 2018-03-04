@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 )
@@ -134,7 +135,7 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 	}
 
 	if tx.builder != nil {
-		tx.err = fmt.Errorf("Tx.Build: transaction already built")
+		tx.err = errors.Errorf("transaction already built")
 		return tx.err
 	}
 
@@ -153,7 +154,7 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 		switch tx.options.memoType {
 		case MemoText:
 			if len(tx.options.memoText) > 28 {
-				return fmt.Errorf("Tx.Build: memo text >28 bytes: %v", tx.options.memoText)
+				return errors.Errorf("memo text >28 bytes: %v", tx.options.memoText)
 			}
 			muts = append(muts, build.MemoText{Value: tx.options.memoText})
 		case MemoID:
@@ -163,8 +164,8 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 
 	builder, err := build.Transaction(muts...)
 	tx.builder = builder
-	tx.err = err
-	return err
+	tx.err = errors.Wrap(err, "could not build transaction")
+	return tx.err
 }
 
 // IsSigned returns true of the transaction is signed.
@@ -179,12 +180,12 @@ func (tx *Tx) Sign(keys ...string) error {
 	}
 
 	if tx.builder == nil {
-		tx.err = fmt.Errorf("Tx.Sign: transaction not built")
+		tx.err = errors.Errorf("can't sign empty transaction")
 		return tx.err
 	}
 
 	if tx.IsSigned() {
-		tx.err = fmt.Errorf("Tx.Sign: transaction already signed")
+		tx.err = errors.Errorf("transaction already signed")
 		return tx.err
 	}
 
@@ -203,15 +204,15 @@ func (tx *Tx) Sign(keys ...string) error {
 	}
 
 	if err != nil {
-		tx.err = err
-		return err
+		tx.err = errors.Wrap(err, "signing error")
+		return tx.err
 	}
 
 	tx.payload, err = txe.Base64()
 
 	if err != nil {
-		tx.err = err
-		return err
+		tx.err = errors.Wrap(err, "base64 conversion error")
+		return tx.err
 	}
 
 	return nil
@@ -224,12 +225,12 @@ func (tx *Tx) Submit() error {
 	}
 
 	if !tx.IsSigned() {
-		tx.err = fmt.Errorf("Tx.Submit: transaction not signed")
+		tx.err = errors.Errorf("transaction not signed")
 		return tx.err
 	}
 
 	if tx.submitted {
-		tx.err = fmt.Errorf("Tx.Submit: transaction already submitted")
+		tx.err = errors.Errorf("transaction already submitted")
 		return tx.err
 	}
 
@@ -241,8 +242,8 @@ func (tx *Tx) Submit() error {
 	resp, err := tx.client.SubmitTransaction(tx.payload)
 
 	if err != nil {
-		tx.err = err
-		return err
+		tx.err = errors.Wrap(err, "could not submit transaction")
+		return tx.err
 	}
 
 	tx.response = &resp
