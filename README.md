@@ -3,7 +3,7 @@
 
 MicroStellar is an easy-to-use Go client for the [Stellar](http://stellar.org) blockchain network. The API is simple and clean, without sacrificing flexibility.
 
-MicroStellar is intended to be robust, well tested, and well documented. We designed it for our Microbanking platform at @qubit-sh, where we aspire to high standards for technology, engineering, and design. It's also fun to use!
+MicroStellar is intended to be robust, well tested, and well documented -- we designed it for our Microbanking platform at @qubit-sh. It's also fun to use!
 
 To get started, follow the instructions below, or read the [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
 
