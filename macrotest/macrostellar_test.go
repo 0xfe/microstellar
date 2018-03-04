@@ -4,6 +4,7 @@ package macrotest
 // microstellar library.
 
 import (
+	"context"
 	"log"
 	"strconv"
 	"testing"
@@ -98,30 +99,47 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	log.Print("Pair2 (distributor): ", keyPair2)
 	log.Print("Pair3 (customer): ", keyPair3)
 	log.Print("Pair4 (signer1): ", keyPair4)
-	log.Print("Pair4 (signer2): ", keyPair5)
+	log.Print("Pair5 (signer2): ", keyPair5)
+
+	log.Print("Watching for payments on distributor's ledger...")
+	watcher, err := ms.WatchPayments(keyPair2.Address, microstellar.Opts().WithContext(context.Background()))
+
+	if err != nil {
+		log.Fatalf("Can't watch ledger: %+v", err)
+	}
+
+	paymentsReceived := 0
+	go func() {
+		for p := range watcher.Ch {
+			log.Printf("  ## WatchPayments ## (distributor) %v: %v%v%v from %v%v", p.Type, p.Amount, p.StartingBalance, p.AssetCode, p.From, p.Account)
+			paymentsReceived++
+		}
+
+		log.Printf("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.StreamError)
+	}()
 
 	log.Printf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
 	USD := microstellar.NewAsset("USD", keyPair1.Address, microstellar.Credit4Type)
 
 	log.Printf("Creating USD trustline for %s (distributor)...", keyPair2.Address)
-	err := ms.CreateTrustLine(keyPair2.Seed, USD, "1000000")
+	err = ms.CreateTrustLine(keyPair2.Seed, USD, "1000000")
 
 	if err != nil {
-		log.Fatalf("CreateTrustLine: %v", err)
+		log.Fatalf("CreateTrustLine: %+v", err)
 	}
 
 	log.Print("Issuing USD from issuer to distributor...")
 	err = ms.Pay(keyPair1.Seed, keyPair2.Address, "500000", USD)
 
 	if err != nil {
-		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
+		log.Fatalf("Pay: %+v", microstellar.ErrorString(err))
 	}
 
 	log.Printf("Creating USD trustline for %s (customer)...", keyPair3.Address)
 	err = ms.CreateTrustLine(keyPair3.Seed, USD, "100000")
 
 	if err != nil {
-		log.Fatalf("CreateTrustLine: %v", err)
+		log.Fatalf("CreateTrustLine: %+v", err)
 	}
 
 	log.Printf("Adding new signers to %s (distributor)...", keyPair2.Address)
@@ -184,12 +202,16 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
 	}
 
+	// Kill payment watcher
+	log.Print("Killing payment watcher...")
+	watcher.CancelFunc()
+
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
 	err = ms.Pay(keyPair3.Seed, keyPair2.Address, "10000", USD,
 		microstellar.Opts().WithMemoText("take it back"))
 
 	if err != nil {
-		log.Fatalf("Pay: %v", err)
+		log.Fatalf("Pay: %+v", err)
 	}
 
 	log.Printf("Removing USD trustline for %s (customer)...", keyPair3.Address)
@@ -204,4 +226,6 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	showBalance(ms, USD, "customer", keyPair3.Address)
 	showBalance(ms, USD, "signer1", keyPair4.Address)
 	showBalance(ms, USD, "signer2", keyPair5.Address)
+
+	log.Printf("Total payments on distributor's ledger: %d", paymentsReceived)
 }

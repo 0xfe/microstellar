@@ -1,6 +1,7 @@
 package microstellar
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -277,6 +278,11 @@ type TxOptions struct {
 	memoID   uint64   // additional memo ID
 
 	signerSeeds []string
+
+	// Microstellar options
+	hasCursor bool
+	cursor    string
+	ctx       context.Context
 }
 
 // NewTxOptions creates a new options structure for Tx.
@@ -285,6 +291,8 @@ func NewTxOptions() *TxOptions {
 		hasFee:        false,
 		hasTimeBounds: false,
 		memoType:      MemoNone,
+		hasCursor:     false,
+		ctx:           nil,
 	}
 }
 
@@ -310,5 +318,18 @@ func (o *TxOptions) WithMemoID(id uint64) *TxOptions {
 // WithSigner adds a signer to Payment p
 func (o *TxOptions) WithSigner(signerSeed string) *TxOptions {
 	o.signerSeeds = append(o.signerSeeds, signerSeed)
+	return o
+}
+
+// WithContext sets the context.Context for the connection
+func (o *TxOptions) WithContext(context context.Context) *TxOptions {
+	o.ctx = context
+	return o
+}
+
+// WithContext sets the cursor for watchers
+func (o *TxOptions) WithCursor(cursor string) *TxOptions {
+	o.hasCursor = true
+	o.cursor = cursor
 	return o
 }

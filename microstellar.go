@@ -25,8 +25,12 @@
 package microstellar
 
 import (
+	"context"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -298,4 +302,92 @@ func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint3
 	tx.Sign(sourceSeed)
 	tx.Submit()
 	return tx.Err()
+}
+
+// Payment represents a finalized payment in the ledger. You can subscribe to payments
+// on the stellar network via the WatchPayments call.
+type Payment horizon.Payment
+
+// NewPaymentFromHorizon converts a horizon JSON payment struct to Payment
+func NewPaymentFromHorizon(p *horizon.Payment) *Payment {
+	payment := Payment(*p)
+	return &payment
+}
+
+// PaymentWatcher is returned by WatchPayments, which watches the ledger for payments
+// to and from an address.
+type PaymentWatcher struct {
+	// Ch gets a *Payment everytime there's a new entry in the ledger.
+	Ch chan *Payment
+
+	// Call Cancelfunc to stop watching the ledger. This closes Ch.
+	CancelFunc func()
+
+	// This is set if the stream terminates unexpectedly. Safe to check
+	// after Ch is closed.
+	StreamError *error
+}
+
+// WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
+// TxOptions.WithContext to set a context.Context, and TxOptions.WithCursor to set a cursor.
+func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*PaymentWatcher, error) {
+	if !ValidAddressOrSeed(address) {
+		return nil, errors.Errorf("can't watch payments: invalid address or seed: %s", address)
+	}
+
+	tx := NewTx(ms.networkName, ms.params)
+
+	var cursor *horizon.Cursor
+	var ctx context.Context
+	var cancelFunc func()
+
+	if len(options) > 0 {
+		tx.SetOptions(options[0])
+		if options[0].hasCursor {
+			// Ugh! Why do I have to do this?
+			c := horizon.Cursor(options[0].cursor)
+			cursor = &c
+		}
+		if options[0].ctx != nil {
+			ctx = options[0].ctx
+		}
+	}
+
+	if ctx != nil {
+		ctx, cancelFunc = context.WithCancel(context.Background())
+	} else {
+		ctx, cancelFunc = context.WithCancel(ctx)
+	}
+
+	var streamError error
+	ch := make(chan *Payment)
+
+	go func(ch chan *Payment, streamError *error) {
+		if tx.fake {
+		out:
+			for {
+				select {
+				case <-ctx.Done():
+					break out
+				default:
+					// continue
+				}
+				ch <- &Payment{From: "FAKESOURCE", To: "FAKEDEST", Type: "payment", AssetCode: "QBIT", Amount: "5"}
+				time.Sleep(200 * time.Millisecond)
+			}
+		} else {
+			err := tx.GetClient().StreamPayments(ctx, address, cursor, func(payment horizon.Payment) {
+				ch <- NewPaymentFromHorizon(&payment)
+			})
+
+			if err != nil {
+				*streamError = errors.Wrapf(err, "payment stream disconnected")
+				cancelFunc()
+			}
+		}
+
+		close(ch)
+	}(ch, &streamError)
+
+	return &PaymentWatcher{ch, cancelFunc, &streamError}, nil
 }
