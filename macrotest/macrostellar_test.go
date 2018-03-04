@@ -30,7 +30,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 	if useFriendBot {
 		// Try to fund it with friendbot
 		log.Printf("Funding new key with friendbot...")
-		resp := failOnError(microstellar.FundWithFriendBot(keyPair.Address))
+		resp, _ := microstellar.FundWithFriendBot(keyPair.Address)
 		log.Printf("Friendbot says: %v", resp)
 	}
 
