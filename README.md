@@ -1,8 +1,13 @@
 # MicroStellar [![Build Status](https://travis-ci.org/0xfe/microstellar.svg?branch=master)](https://travis-ci.org/0xfe/microstellar)
+#### -- a production of [0xfe industries](https://github.com/0xfe) --
 
-MicroStellar is an easy-to-use and fully functional (WIP) Go client for the Stellar blockchain. See the [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+MicroStellar is an easy-to-use Go client for the [Stellar](http://stellar.org) blockchain network. The API is simple and clean, without sacrificing flexibility.
 
-MicroStellar is a production of [0xFE Industries](https://github.com/0xfe).
+MicroStellar is intended to be robust, well tested, and well documented. We designed it for our Microbanking platform at @qubit-sh, where we aspire to high standards for technology, engineering, and design. It's also fun to use!
+
+To get started, follow the instructions below, or read the [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
+
+**MIT License: Copyright 2018 Mohit Muthanna Cheppudira**
 
 ## QuickStart
 
@@ -32,8 +37,8 @@ log.Print(pair.Seed, pair.Address)
 // In stellar, you can create all kinds of asset types -- dollars, houses, kittens. These
 // customized assets are called credit assets.
 //
-// But the native asset is lumens (XLM). Lumens are used to pay for transactions on the
-// stellar network, and are used to fund the operations of Stellar.
+// However, the native asset is always lumens (XLM). Lumens are used to pay for transactions
+// on the stellar network, and are used to fund the operations of Stellar.
 //
 // When you first create a key pair, you need to fund it with atleast 0.5 lumens. This
 // is called the "base reserve", and makes the account valid. You can only transact to
@@ -162,7 +167,6 @@ for i, s := range account.Signers {
 * Offer management
 * Path payments
 * Streaming ledger data (transactions, offers, etc.)
-* Operations and options
 
 ## Hacking on MicroStellar
 
