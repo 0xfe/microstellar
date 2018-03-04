@@ -12,6 +12,9 @@ import (
 	"github.com/0xfe/microstellar"
 )
 
+// Send unused friendbot funds here
+const homeAddress string = "GB7RTQME2RAOPRBDFBICCP3UDLCIJOSP7ZWCW5IL7Z6L4FNVLZMEWX2G"
+
 // Helper function to remove stupid "if err != nil" checks
 func failOnError(i interface{}, err error) interface{} {
 	if err != nil {
@@ -54,7 +57,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 		log.Printf("Payment sent: 100 lumens")
 	} else {
 		log.Printf("Yay! Friendbot paid us. Sending some lumens back to fundSource...")
-		err := ms.PayNative(keyPair.Seed, fundSourceSeed, "5000", microstellar.Opts().WithMemoText("friendbot payback"))
+		err := ms.PayNative(keyPair.Seed, homeAddress, "5000", microstellar.Opts().WithMemoText("friendbot payback"))
 
 		if err != nil {
 			log.Fatalf(microstellar.ErrorString(err))
