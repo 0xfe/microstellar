@@ -353,7 +353,7 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*P
 		}
 	}
 
-	if ctx != nil {
+	if ctx == nil {
 		ctx, cancelFunc = context.WithCancel(context.Background())
 	} else {
 		ctx, cancelFunc = context.WithCancel(ctx)
