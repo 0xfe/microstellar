@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://imgur.com/kPRfhrH.png" width="400"/>
   <br/>
-  <b>-- a production of [<a href="https://github.com/0xfe">0xfe industries</a>] --
+  <b>-- a production of [<a href="https://github.com/0xfe">0xfe industries</a>] --</b>
   <br/>
   <a href="https://travis-ci.org/0xfe/microstellar"><img src="https://travis-ci.org/0xfe/microstellar.svg?branch=master"/></a>
 </p>
