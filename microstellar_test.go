@@ -156,7 +156,7 @@ func ExampleMicroStellar_FundAccount() {
 }
 
 // This example loads and displays the native and a non-native balance on an account.
-func ExampleMicroStellar_LoadAccount_GetBalance() {
+func ExampleMicroStellar_LoadAccount_balance() {
 	// Create a new MicroStellar client connected to a fake network. To
 	// use a real network replace "fake" below with "test" or "public".
 	ms := New("fake")
