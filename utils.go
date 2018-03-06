@@ -45,6 +45,8 @@ func ErrorString(err error, showStackTrace ...bool) string {
 		if err == nil {
 			errorString += fmt.Sprintf(" (%v)", resultCodes)
 		}
+	} else {
+		errorString = fmt.Sprintf("%v", err)
 	}
 
 	if len(showStackTrace) > 0 {
