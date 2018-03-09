@@ -382,7 +382,41 @@ func ExampleMicroStellar_SetThresholds() {
 	err := ms.SetThresholds("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", 2, 2, 2)
 
 	if err != nil {
-		log.Fatalf("RemoveSigner: %v", err)
+		log.Fatalf("SetThresholds: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example sets the home domain for an account
+func ExampleMicroStellar_SetHomeDomain() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set the home domain to qubit.sh
+	err := ms.SetHomeDomain("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "qubit.sh")
+
+	if err != nil {
+		log.Fatalf("SetHomeDomain: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example sets flags on an issuer's account
+func ExampleMicroStellar_SetFlags() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set the AUTH_REQUIRED and AUTH_REVOCABLE flags on the account.
+	err := ms.SetFlags("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", FlagAuthRequired|FlagAuthRevocable)
+
+	if err != nil {
+		log.Fatalf("SetFlags: %v", err)
 	}
 
 	fmt.Printf("ok")
