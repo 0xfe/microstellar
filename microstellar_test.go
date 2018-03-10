@@ -450,7 +450,7 @@ func ExampleMicroStellar_WatchPayments() {
 
 	// Stream the ledger for about a second then stop the watcher.
 	time.Sleep(1 * time.Second)
-	watcher.CancelFunc()
+	watcher.Done()
 
 	// Sleep a bit to wait for the done message from the goroutine.
 	time.Sleep(500 * time.Millisecond)

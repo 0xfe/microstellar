@@ -378,8 +378,8 @@ type PaymentWatcher struct {
 	// Ch gets a *Payment everytime there's a new entry in the ledger.
 	Ch chan *Payment
 
-	// Call Cancelfunc to stop watching the ledger. This closes Ch.
-	CancelFunc func()
+	// Call Done to stop watching the ledger. This closes Ch.
+	Done func()
 
 	// This is set if the stream terminates unexpectedly. Safe to check
 	// after Ch is closed.

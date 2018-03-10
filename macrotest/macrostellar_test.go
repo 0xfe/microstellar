@@ -207,7 +207,7 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 
 	// Kill payment watcher
 	log.Print("Killing payment watcher...")
-	watcher.CancelFunc()
+	watcher.Done()
 
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
 	err = ms.Pay(keyPair3.Seed, keyPair2.Address, "10000", USD,
