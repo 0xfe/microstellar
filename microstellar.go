@@ -433,6 +433,7 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*P
 			}
 		} else {
 			err := tx.GetClient().StreamPayments(ctx, address, cursor, func(payment horizon.Payment) {
+				tx.GetClient().LoadMemo(&payment)
 				ch <- NewPaymentFromHorizon(&payment)
 			})
 
