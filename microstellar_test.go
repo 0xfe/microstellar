@@ -301,8 +301,11 @@ func ExampleMicroStellar_CreateOffer() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
-	// Sell 200 USD on the DEX for lumens (at 0.5 USD/lumen)
-	err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", USD, NativeAsset, "200", "0.5")
+	// Sell 200 USD on the DEX for lumens (at 0.5 USD/lumen). This is a passive
+	// offer.
+	err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
+		USD, NativeAsset, "200", "0.5",
+		Opts().MakePassive())
 
 	if err != nil {
 		log.Fatalf("CreateOffer: %v", err)

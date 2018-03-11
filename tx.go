@@ -271,33 +271,40 @@ const (
 // TxOptions are additional parameters for a transaction. Use Opts() or NewTxOptions()
 // to create a new instance.
 type TxOptions struct {
-	// Use With* methods to set these options
-	hasFee bool
-	fee    uint32
+	// Defaults to context.Background if unset.
+	ctx context.Context
 
+	// Use With* methods to set these options
+	hasFee        bool
+	fee           uint32
 	hasTimeBounds bool
 	timeBounds    time.Duration
 
+	// Used by all transactions.
 	memoType MemoType // defaults to no memo
 	memoText string   // additional memo text
 	memoID   uint64   // additional memo ID
 
 	signerSeeds []string
 
-	// Microstellar options
+	// Microstellar options.
+	// For the Watch* methods.
 	hasCursor bool
 	cursor    string
-	ctx       context.Context
+
+	// For offer management.
+	passiveOffer bool
 }
 
 // NewTxOptions creates a new options structure for Tx.
 func NewTxOptions() *TxOptions {
 	return &TxOptions{
+		ctx:           nil,
 		hasFee:        false,
 		hasTimeBounds: false,
 		memoType:      MemoNone,
 		hasCursor:     false,
-		ctx:           nil,
+		passiveOffer:  false,
 	}
 }
 
@@ -336,5 +343,11 @@ func (o *TxOptions) WithContext(context context.Context) *TxOptions {
 func (o *TxOptions) WithCursor(cursor string) *TxOptions {
 	o.hasCursor = true
 	o.cursor = cursor
+	return o
+}
+
+// MakePassive turns this into a passive offer
+func (o *TxOptions) MakePassive() *TxOptions {
+	o.passiveOffer = true
 	return o
 }

@@ -208,8 +208,8 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 	return tx.Err()
 }
 
-// CreateOffer creates an offer from to sell sellAmount of sellAsset held by sourceSeed for buyAsset at buyPrice. The
-// offer is made on Stellar's decentralized exchange (DEX.)
+// CreateOffer creates an offer to trade sellAmount of sellAsset held by sourceSeed for buyAsset at
+// buyPrice (per unit of buyAsset.) The offer is made on Stellar's decentralized exchange (DEX.)
 func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, sellAmount string, buyPrice string, options ...*TxOptions) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't create offer: invalid source address or seed: %s", sourceSeed)
@@ -224,12 +224,16 @@ func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsse
 	}
 
 	tx := NewTx(ms.networkName, ms.params)
+	builder := build.CreateOffer
 
 	if len(options) > 0 {
 		tx.SetOptions(options[0])
+		if options[0].passiveOffer {
+			builder = build.CreatePassiveOffer
+		}
 	}
 
-	tx.Build(sourceAccount(sourceSeed), build.CreateOffer(
+	tx.Build(sourceAccount(sourceSeed), builder(
 		build.Rate{
 			Selling: genBuildAsset(sellAsset),
 			Buying:  genBuildAsset(buyAsset),
