@@ -208,6 +208,39 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 	return tx.Err()
 }
 
+// CreateOffer creates an offer from to sell sellAmount of sellAsset held by sourceSeed for buyAsset at buyPrice. The
+// offer is made on Stellar's decentralized exchange (DEX.)
+func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, sellAmount string, buyPrice string, options ...*TxOptions) error {
+	if !ValidAddressOrSeed(sourceSeed) {
+		return errors.Errorf("can't create offer: invalid source address or seed: %s", sourceSeed)
+	}
+
+	if err := buyAsset.Validate(); err != nil {
+		return errors.Wrap(err, "can't create offer")
+	}
+
+	if err := sellAsset.Validate(); err != nil {
+		return errors.Wrap(err, "can't create offer")
+	}
+
+	tx := NewTx(ms.networkName, ms.params)
+
+	if len(options) > 0 {
+		tx.SetOptions(options[0])
+	}
+
+	tx.Build(sourceAccount(sourceSeed), build.CreateOffer(
+		build.Rate{
+			Selling: genBuildAsset(sellAsset),
+			Buying:  genBuildAsset(buyAsset),
+			Price:   build.Price(buyPrice),
+		}, build.Amount(sellAmount)))
+
+	tx.Sign(sourceSeed)
+	tx.Submit()
+	return tx.Err()
+}
+
 // CreateTrustLine creates a trustline from sourceSeed to asset, with the specified trust limit. An empty
 // limit string indicates no limit.
 func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string, options ...*TxOptions) error {

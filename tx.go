@@ -112,10 +112,10 @@ func (tx *Tx) Err() error {
 
 // Response returns the horison response for the submitted operation.
 func (tx *Tx) Response() string {
-	return fmt.Sprintf("%v", tx.response)
+	return fmt.Sprintf("%+v", tx.response)
 }
 
-// Reset clears all internal state, so you can run a new operation.
+// Reset clears all internal sate, so you can run a new operation.
 func (tx *Tx) Reset() {
 	tx.options = nil
 	tx.builder = nil

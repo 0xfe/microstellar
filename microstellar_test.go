@@ -292,6 +292,26 @@ func ExampleMicroStellar_CreateTrustLine() {
 	// Output: ok
 }
 
+// This example creates an offer on stellar's DEX.
+func ExampleMicroStellar_CreateOffer() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Sell 200 USD on the DEX for lumens (at 0.5 USD/lumen)
+	err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", USD, NativeAsset, "200", "0.5")
+
+	if err != nil {
+		log.Fatalf("CreateOffer: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
 // This example removes a trust line to a credit asset.
 func ExampleMicroStellar_RemoveTrustLine() {
 	// Create a new MicroStellar client connected to a fake network. To
