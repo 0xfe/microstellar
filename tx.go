@@ -198,6 +198,7 @@ func (tx *Tx) Sign(keys ...string) error {
 	var txe build.TransactionEnvelopeBuilder
 	var err error
 
+	debugF("Tx.Sign", "signing transaction, seq: %v", tx.builder.TX.SeqNum)
 	if tx.options != nil && len(tx.options.signerSeeds) > 0 {
 		txe, err = tx.builder.Sign(tx.options.signerSeeds...)
 	} else {
@@ -210,6 +211,7 @@ func (tx *Tx) Sign(keys ...string) error {
 	}
 
 	tx.payload, err = txe.Base64()
+	debugF("Tx.Sign", "signed transaction, payload: %s", tx.payload)
 
 	if err != nil {
 		tx.err = errors.Wrap(err, "base64 conversion error")
@@ -240,13 +242,16 @@ func (tx *Tx) Submit() error {
 		return nil
 	}
 
+	debugF("Tx.Submit", "submitting transaction to network %s", tx.networkName)
 	resp, err := tx.client.SubmitTransaction(tx.payload)
 
 	if err != nil {
+		debugF("Tx.Submit", "submit failed: %s", ErrorString(err))
 		tx.err = errors.Wrap(err, "could not submit transaction")
 		return tx.err
 	}
 
+	debugF("Tx.Submit", "transaction submitted to ledger %d with hash %s", int32(resp.Ledger), resp.Hash)
 	tx.response = &resp
 	tx.submitted = true
 	return nil
