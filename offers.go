@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 )
 
 // OfferType tells ManagedOffer what operation to perform
@@ -39,9 +40,58 @@ type OfferParams struct {
 	OfferID string
 }
 
+// Offer is an offer on the DEX.
+type Offer horizon.Offer
+
+func newOfferFromHorizon(offer horizon.Offer) Offer {
+	return Offer(offer)
+}
+
+// LoadOffers returns all existing trade offers made by address.
+func (ms *MicroStellar) LoadOffers(address string, options ...*Options) ([]Offer, error) {
+	if err := ValidAddress(address); err != nil {
+		return nil, errors.Errorf("invalid address: %s", address)
+	}
+
+	opt := mergeOptions(options)
+	params := []interface{}{}
+
+	if opt.hasLimit {
+		params = append(params, horizon.Limit(opt.limit))
+	}
+
+	if opt.hasCursor {
+		params = append(params, horizon.Cursor(opt.cursor))
+	}
+
+	if opt.sortDescending {
+		params = append(params, horizon.Order("desc"))
+	} else {
+		params = append(params, horizon.Order("asc"))
+	}
+
+	debugF("LoadOffers", "loading offers for %s, with params +%v", address, params)
+	if ms.fake {
+		return []Offer{}, nil
+	}
+
+	tx := NewTx(ms.networkName, ms.params)
+	horizonOffers, err := tx.GetClient().LoadAccountOffers(address, params...)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "can't load offers")
+	}
+
+	results := make([]Offer, len(horizonOffers.Embedded.Records))
+	for i, o := range horizonOffers.Embedded.Records {
+		results[i] = Offer(o)
+	}
+	return results, nil
+}
+
 // ManageOffer lets you trade on the DEX. See the Create/Update/DeleteOffer methods below
 // to see how this is used.
-func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, options ...*TxOptions) error {
+func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("invalid source address or seed: %s", sourceSeed)
 	}
@@ -100,7 +150,7 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 // buyPrice (per unit of buyAsset.) The offer is made on Stellar's decentralized exchange (DEX.)
 //
 // You can use add Opts().MakePassive() to make this a passive offer.
-func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*TxOptions) error {
+func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*Options) error {
 	offerType := OfferCreate
 
 	if len(options) > 0 {
@@ -119,7 +169,7 @@ func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsse
 }
 
 // UpdateOffer updates the existing offer with ID offerID on the DEX.
-func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*TxOptions) error {
+func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*Options) error {
 	return ms.ManageOffer(sourceSeed, &OfferParams{
 		OfferType:  OfferUpdate,
 		SellAsset:  sellAsset,
@@ -131,7 +181,7 @@ func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset
 }
 
 // DeleteOffer deletes the specified parameters (assets, price, ID) on the DEX.
-func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, options ...*TxOptions) error {
+func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, options ...*Options) error {
 	return ms.ManageOffer(sourceSeed, &OfferParams{
 		OfferType: OfferUpdate,
 		SellAsset: sellAsset,

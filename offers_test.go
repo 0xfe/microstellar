@@ -79,7 +79,7 @@ func ExampleMicroStellar_ManageOffer() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
-	// Delete Offer ID 23456 on the DEX.
+	// Create an offer to buy 200 lumens for USD 0.4 each.
 	err := ms.ManageOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
 		&OfferParams{
 			OfferType:  OfferCreate,
@@ -91,6 +91,28 @@ func ExampleMicroStellar_ManageOffer() {
 
 	if err != nil {
 		log.Fatalf("ManageOffer: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example lists the offers currently out by an address.
+func ExampleMicroStellar_LoadOffers() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Get at most 10 offers made by address in descending order
+	offers, err := ms.LoadOffers("GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ",
+		Opts().WithLimit(10).WithSortOrder(SortDescending))
+
+	if err != nil {
+		log.Fatalf("LoadOffers: %v", err)
+	}
+
+	for _, o := range offers {
+		log.Printf("Offer ID: %v, Selling: %v, Price: %v, Amount: %v", o.ID, o.Selling.Code, o.Price, o.Amount)
 	}
 
 	fmt.Printf("ok")

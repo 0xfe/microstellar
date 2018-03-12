@@ -16,10 +16,10 @@
 // In most the methods below, the first parameter is usually "sourceSeed", which should be the
 // seed of the account that signs the transaction.
 //
-// You can add a *TxOptions struct to the end of many methods, which set extra parameters on the
-// submitted transaction. If you add new signers via TxOptions, then sourceSeed will not be used to sign
+// You can add a *Options struct to the end of many methods, which set extra parameters on the
+// submitted transaction. If you add new signers via Options, then sourceSeed will not be used to sign
 // the transaction -- and it's okay to use a public address instead of a seed for sourceSeed.
-// See examples for how to use TxOptions.
+// See examples for how to use Options.
 //
 // You can use ErrorString(...) to extract the Horizon error from a returned error.
 package microstellar
@@ -95,7 +95,7 @@ func (ms *MicroStellar) CreateKeyPair() (*KeyPair, error) {
 
 // FundAccount creates a new account out of addressOrSeed by funding it with lumens
 // from sourceSeed. The minimum funding amount today is 0.5 XLM.
-func (ms *MicroStellar) FundAccount(sourceSeed string, addressOrSeed string, amount string, options ...*TxOptions) error {
+func (ms *MicroStellar) FundAccount(sourceSeed string, addressOrSeed string, amount string, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("invalid source address or seed: %s", sourceSeed)
 	}
@@ -165,14 +165,14 @@ func (ms *MicroStellar) Resolve(address string) (string, error) {
 }
 
 // PayNative makes a native asset payment of amount from source to target.
-func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amount string, options ...*TxOptions) error {
+func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amount string, options ...*Options) error {
 	return ms.Pay(sourceSeed, targetAddress, amount, NativeAsset, options...)
 }
 
 // Pay lets you make payments with credit assets.
 //
 //   ms.Pay("source_seed", "target_address", "3", NativeAsset, microstellar.Opts().WithMemoText("for shelter"))
-func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount string, asset *Asset, options ...*TxOptions) error {
+func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount string, asset *Asset, options ...*Options) error {
 	if err := asset.Validate(); err != nil {
 		return errors.Wrap(err, "can't pay")
 	}
@@ -210,7 +210,7 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 
 // CreateTrustLine creates a trustline from sourceSeed to asset, with the specified trust limit. An empty
 // limit string indicates no limit.
-func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string, options ...*TxOptions) error {
+func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit string, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't create trust line: invalid source address or seed: %s", sourceSeed)
 	}
@@ -237,7 +237,7 @@ func (ms *MicroStellar) CreateTrustLine(sourceSeed string, asset *Asset, limit s
 }
 
 // RemoveTrustLine removes an trustline from sourceSeed to an asset.
-func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, options ...*TxOptions) error {
+func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't remove trust line: invalid source address or seed: %s", sourceSeed)
 	}
@@ -259,7 +259,7 @@ func (ms *MicroStellar) RemoveTrustLine(sourceSeed string, asset *Asset, options
 }
 
 // SetMasterWeight changes the master weight of sourceSeed.
-func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32, options ...*TxOptions) error {
+func (ms *MicroStellar) SetMasterWeight(sourceSeed string, weight uint32, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't set master weight: invalid source address or seed: %s", sourceSeed)
 	}
@@ -294,7 +294,7 @@ const (
 )
 
 // SetFlags changes the flags for the account.
-func (ms *MicroStellar) SetFlags(sourceSeed string, flags AccountFlags, options ...*TxOptions) error {
+func (ms *MicroStellar) SetFlags(sourceSeed string, flags AccountFlags, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't set flags: invalid source address or seed: %s", sourceSeed)
 	}
@@ -312,7 +312,7 @@ func (ms *MicroStellar) SetFlags(sourceSeed string, flags AccountFlags, options 
 }
 
 // SetHomeDomain changes the home domain of sourceSeed.
-func (ms *MicroStellar) SetHomeDomain(sourceSeed string, domain string, options ...*TxOptions) error {
+func (ms *MicroStellar) SetHomeDomain(sourceSeed string, domain string, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't set home domain: invalid source address or seed: %s", sourceSeed)
 	}
@@ -330,7 +330,7 @@ func (ms *MicroStellar) SetHomeDomain(sourceSeed string, domain string, options 
 }
 
 // AddSigner adds signerAddress as a signer to sourceSeed's account with weight signerWeight.
-func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32, options ...*TxOptions) error {
+func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signerWeight uint32, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't add signer: invalid source address or seed: %s", sourceSeed)
 	}
@@ -352,7 +352,7 @@ func (ms *MicroStellar) AddSigner(sourceSeed string, signerAddress string, signe
 }
 
 // RemoveSigner removes signerAddress as a signer from sourceSeed's account.
-func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, options ...*TxOptions) error {
+func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't remove signer: invalid source address or seed: %s", sourceSeed)
 	}
@@ -374,7 +374,7 @@ func (ms *MicroStellar) RemoveSigner(sourceSeed string, signerAddress string, op
 }
 
 // SetThresholds sets the signing thresholds for the account.
-func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint32, options ...*TxOptions) error {
+func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint32, options ...*Options) error {
 	if !ValidAddressOrSeed(sourceSeed) {
 		return errors.Errorf("can't set thresholds: invalid source address or seed: %s", sourceSeed)
 	}
@@ -416,8 +416,8 @@ type PaymentWatcher struct {
 }
 
 // WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
-// TxOptions.WithContext to set a context.Context, and TxOptions.WithCursor to set a cursor.
-func (ms *MicroStellar) WatchPayments(address string, options ...*TxOptions) (*PaymentWatcher, error) {
+// Options.WithContext to set a context.Context, and Options.WithCursor to set a cursor.
+func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*PaymentWatcher, error) {
 	debugF("WatchPayments", "watching address: %s", address)
 	if err := ValidAddress(address); err != nil {
 		return nil, errors.Errorf("can't watch payments, invalid address: %s", address)
