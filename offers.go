@@ -100,7 +100,7 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 // buyPrice (per unit of buyAsset.) The offer is made on Stellar's decentralized exchange (DEX.)
 //
 // You can use add Opts().MakePassive() to make this a passive offer.
-func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, sellAmount string, buyPrice string, options ...*TxOptions) error {
+func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*TxOptions) error {
 	offerType := OfferCreate
 
 	if len(options) > 0 {
@@ -119,7 +119,7 @@ func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsse
 }
 
 // UpdateOffer updates the existing offer with ID offerID on the DEX.
-func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, sellAmount string, buyPrice string, options ...*TxOptions) error {
+func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*TxOptions) error {
 	return ms.ManageOffer(sourceSeed, &OfferParams{
 		OfferType:  OfferUpdate,
 		SellAsset:  sellAsset,
