@@ -13,7 +13,7 @@ import (
 	"github.com/stellar/go/strkey"
 )
 
-func debugF(method string, msg string, args ...interface{}) {
+func debugf(method string, msg string, args ...interface{}) {
 	logrus.WithFields(logrus.Fields{"lib": "microstellar", "method": method}).Debugf(msg, args...)
 }
 
@@ -77,7 +77,7 @@ func ErrorString(err error, showStackTrace ...bool) string {
 
 // FundWithFriendBot funds address on the test network with some initial funds.
 func FundWithFriendBot(address string) (string, error) {
-	debugF("FundWithFriendBot", "funding address: %s", address)
+	debugf("FundWithFriendBot", "funding address: %s", address)
 	resp, err := http.Get("https://horizon-testnet.stellar.org/friendbot?addr=" + address)
 	if err != nil {
 		return "", err

@@ -19,7 +19,7 @@ func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{})
 }
 
-func debugF(msg string, args ...interface{}) {
+func debugf(msg string, args ...interface{}) {
 	logrus.WithFields(logrus.Fields{"test": "macrotest"}).Infof(msg, args...)
 }
 
@@ -39,35 +39,35 @@ func failOnError(i interface{}, err error) interface{} {
 func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, useFriendBot bool) microstellar.KeyPair {
 	// Create a key pair
 	keyPair := failOnError(ms.CreateKeyPair()).(*microstellar.KeyPair)
-	debugF("Created key pair: %v", keyPair)
+	debugf("Created key pair: %v", keyPair)
 
 	if useFriendBot {
 		// Try to fund it with friendbot
-		debugF("Funding new key with friendbot...")
+		debugf("Funding new key with friendbot...")
 		resp, _ := microstellar.FundWithFriendBot(keyPair.Address)
-		debugF("Friendbot says: %v", resp)
+		debugf("Friendbot says: %v", resp)
 	}
 
 	// Load the account to see if there are funds
-	debugF("Checking balance on new key...")
+	debugf("Checking balance on new key...")
 	account, err := ms.LoadAccount(keyPair.Address)
 	var floatBalance float64 = 0
 
 	if err == nil {
 		balance := account.GetNativeBalance()
-		debugF("Got balance: %v", balance)
+		debugf("Got balance: %v", balance)
 		floatBalance = failOnError(strconv.ParseFloat(balance, 64)).(float64)
 	}
 
 	if floatBalance == 0 {
-		debugF("Looks like it's empty. Funding via source account...")
+		debugf("Looks like it's empty. Funding via source account...")
 		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "100", microstellar.Opts().WithMemoText("initial fund"))
 		if err != nil {
 			log.Fatalf("Funding failed: %v", microstellar.ErrorString(err))
 		}
-		debugF("Payment sent: 100 lumens")
+		debugf("Payment sent: 100 lumens")
 	} else {
-		debugF("Yay! Friendbot paid us. Sending some lumens back to fundSource...")
+		debugf("Yay! Friendbot paid us. Sending some lumens back to fundSource...")
 		err := ms.PayNative(keyPair.Seed, homeAddress, "5000", microstellar.Opts().WithMemoText("friendbot payback"))
 
 		if err != nil {
@@ -80,7 +80,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 
 // Helper function to show the asset balance of a specific account
 func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name, address string) {
-	debugF("Balances for %s: %s", name, address)
+	debugf("Balances for %s: %s", name, address)
 	account, err := ms.LoadAccount(address)
 
 	if err != nil {
@@ -92,7 +92,7 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 	log.Print("  USD: ", account.GetBalance(asset))
 
 	for i, s := range account.Signers {
-		debugF("  signer %d (type: %v, weight: %v): %v", i, s.Type, s.Weight, s.PublicKey)
+		debugf("  signer %d (type: %v, weight: %v): %v", i, s.Type, s.Weight, s.PublicKey)
 	}
 }
 
@@ -125,17 +125,17 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	paymentsReceived := 0
 	go func() {
 		for p := range watcher.Ch {
-			debugF("  ## WatchPayments ## (distributor) %v: %v%v%v from %v%v", p.Type, p.Amount, p.StartingBalance, p.AssetCode, p.From, p.Account)
+			debugf("  ## WatchPayments ## (distributor) %v: %v%v%v from %v%v", p.Type, p.Amount, p.StartingBalance, p.AssetCode, p.From, p.Account)
 			paymentsReceived++
 		}
 
-		debugF("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.Err)
+		debugf("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.Err)
 	}()
 
-	debugF("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
+	debugf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
 	USD := microstellar.NewAsset("USD", keyPair1.Address, microstellar.Credit4Type)
 
-	debugF("Creating USD trustline for %s (distributor)...", keyPair2.Address)
+	debugf("Creating USD trustline for %s (distributor)...", keyPair2.Address)
 	err = ms.CreateTrustLine(keyPair2.Seed, USD, "1000000")
 
 	if err != nil {
@@ -149,18 +149,18 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 		log.Fatalf("Pay: %+v", microstellar.ErrorString(err))
 	}
 
-	debugF("Creating USD trustline for %s (customer)...", keyPair3.Address)
+	debugf("Creating USD trustline for %s (customer)...", keyPair3.Address)
 	err = ms.CreateTrustLine(keyPair3.Seed, USD, "100000")
 
 	if err != nil {
 		log.Fatalf("CreateTrustLine: %+v", err)
 	}
 
-	debugF("Adding new signers to %s (distributor)...", keyPair2.Address)
+	debugf("Adding new signers to %s (distributor)...", keyPair2.Address)
 	ms.AddSigner(keyPair2.Seed, keyPair4.Address, 1)
 	ms.AddSigner(keyPair2.Seed, keyPair5.Address, 1)
 
-	debugF("Killing master weight for %s (distributor)...", keyPair2.Address)
+	debugf("Killing master weight for %s (distributor)...", keyPair2.Address)
 	err = ms.SetMasterWeight(keyPair2.Seed, 0)
 
 	// See signers for key...
@@ -198,8 +198,8 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
 	}
 
-	debugF("Require a total signing weight of 2 on distributor...")
-	err = ms.SetThresholds(keyPair2.Address, 2, 2, 2, microstellar.NewTxOptions().WithSigner(keyPair4.Seed))
+	debugf("Require a total signing weight of 2 on distributor...")
+	err = ms.SetThresholds(keyPair2.Address, 2, 2, 2, microstellar.Opts().WithSigner(keyPair4.Seed))
 
 	if err != nil {
 		log.Fatalf("SetThresholds failed: %v", microstellar.ErrorString(err))
@@ -228,7 +228,7 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 		log.Fatalf("Pay: %+v", err)
 	}
 
-	debugF("Removing USD trustline for %s (customer)...", keyPair3.Address)
+	debugf("Removing USD trustline for %s (customer)...", keyPair3.Address)
 	err = ms.RemoveTrustLine(keyPair3.Seed, USD)
 
 	if err != nil {
@@ -241,5 +241,5 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	showBalance(ms, USD, "signer1", keyPair4.Address)
 	showBalance(ms, USD, "signer2", keyPair5.Address)
 
-	debugF("Total payments on distributor's ledger: %d", paymentsReceived)
+	debugf("Total payments on distributor's ledger: %d", paymentsReceived)
 }

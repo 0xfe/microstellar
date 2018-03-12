@@ -70,7 +70,7 @@ func (ms *MicroStellar) LoadOffers(address string, options ...*Options) ([]Offer
 		params = append(params, horizon.Order("asc"))
 	}
 
-	debugF("LoadOffers", "loading offers for %s, with params +%v", address, params)
+	debugf("LoadOffers", "loading offers for %s, with params +%v", address, params)
 	if ms.fake {
 		return []Offer{}, nil
 	}

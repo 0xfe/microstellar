@@ -89,7 +89,7 @@ func (ms *MicroStellar) CreateKeyPair() (*KeyPair, error) {
 		return nil, err
 	}
 
-	debugF("CreateKeyPair", "created address: %s, seed: <redacted>", pair.Address())
+	debugf("CreateKeyPair", "created address: %s, seed: <redacted>", pair.Address())
 	return &KeyPair{pair.Seed(), pair.Address()}, nil
 }
 
@@ -130,7 +130,7 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 		return newAccount(), nil
 	}
 
-	debugF("LoadAccount", "loading account: %s", address)
+	debugf("LoadAccount", "loading account: %s", address)
 	tx := NewTx(ms.networkName, ms.params)
 	account, err := tx.GetClient().LoadAccount(address)
 
@@ -143,7 +143,7 @@ func (ms *MicroStellar) LoadAccount(address string) (*Account, error) {
 
 // Resolve looks up a federated address
 func (ms *MicroStellar) Resolve(address string) (string, error) {
-	debugF("Resolve", "looking up: %s", address)
+	debugf("Resolve", "looking up: %s", address)
 	if !strings.Contains(address, "*") {
 		return "", errors.Errorf("not a fedaration address: %s", address)
 	}
@@ -418,7 +418,7 @@ type PaymentWatcher struct {
 // WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
 // Options.WithContext to set a context.Context, and Options.WithCursor to set a cursor.
 func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*PaymentWatcher, error) {
-	debugF("WatchPayments", "watching address: %s", address)
+	debugf("WatchPayments", "watching address: %s", address)
 	if err := ValidAddress(address); err != nil {
 		return nil, errors.Errorf("can't watch payments, invalid address: %s", address)
 	}
@@ -435,7 +435,7 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*Pay
 			// Ugh! Why do I have to do this?
 			c := horizon.Cursor(options[0].cursor)
 			cursor = &c
-			debugF("WatchPayments", "starting stream for address: %s at cursor: %s", address, string(*cursor))
+			debugf("WatchPayments", "starting stream for address: %s at cursor: %s", address, string(*cursor))
 		}
 		ctx = options[0].ctx
 	}
@@ -464,13 +464,13 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*Pay
 			}
 		} else {
 			err := tx.GetClient().StreamPayments(ctx, address, cursor, func(payment horizon.Payment) {
-				debugF("WatchPayments", "found payment (%s) at %s, loading memo", payment.Type, address)
+				debugf("WatchPayments", "found payment (%s) at %s, loading memo", payment.Type, address)
 				tx.GetClient().LoadMemo(&payment)
 				ch <- NewPaymentFromHorizon(&payment)
 			})
 
 			if err != nil {
-				debugF("WatchPayments", "stream unexpectedly disconnected", err)
+				debugf("WatchPayments", "stream unexpectedly disconnected", err)
 				*streamError = errors.Wrapf(err, "payment stream disconnected")
 				cancelFunc()
 			}
