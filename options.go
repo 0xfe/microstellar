@@ -54,6 +54,11 @@ type Options struct {
 
 	// For offer management.
 	passiveOffer bool
+
+	// for Path payments.
+	sendAsset *Asset
+	maxAmount string
+	path      []*Asset
 }
 
 // NewOptions creates a new options structure for Tx.
@@ -85,47 +90,51 @@ func mergeOptions(opts []*Options) *Options {
 	return NewOptions()
 }
 
-// WithMemoText sets the memoType and memoText fields on Payment p
+// WithMemoText sets the memoType and memoText fields on a Payment. Used
+// with all transactions.
 func (o *Options) WithMemoText(text string) *Options {
 	o.memoType = MemoText
 	o.memoText = text
 	return o
 }
 
-// WithMemoID sets the memoType and memoID fields on Payment p
+// WithMemoID sets the memoType and memoID fields on a Payment. Used
+// with all transactions.
 func (o *Options) WithMemoID(id uint64) *Options {
 	o.memoType = MemoID
 	o.memoID = id
 	return o
 }
 
-// WithSigner adds a signer to Payment p
+// WithSigner adds a signer to Payment. Used with all transactions.
 func (o *Options) WithSigner(signerSeed string) *Options {
 	o.signerSeeds = append(o.signerSeeds, signerSeed)
 	return o
 }
 
-// WithContext sets the context.Context for the connection
+// WithContext sets the context.Context for the connection. Used with
+// Watch* methods.
 func (o *Options) WithContext(context context.Context) *Options {
 	o.ctx = context
 	return o
 }
 
-// WithCursor sets the cursor for watchers and queries
+// WithCursor sets the cursor for watchers and queries. Used with Watch*
+// methods and LoadOffers.
 func (o *Options) WithCursor(cursor string) *Options {
 	o.hasCursor = true
 	o.cursor = cursor
 	return o
 }
 
-// WithLimit sets the limit for queries
+// WithLimit sets the limit for queries. Used with LoadOffers.
 func (o *Options) WithLimit(limit uint) *Options {
 	o.hasLimit = true
 	o.limit = limit
 	return o
 }
 
-// WithSortOrder sets the sort order of the results
+// WithSortOrder sets the sort order of the results. Used with LoadOffers.
 func (o *Options) WithSortOrder(order SortOrder) *Options {
 	if order == SortDescending {
 		o.sortDescending = true
@@ -133,10 +142,23 @@ func (o *Options) WithSortOrder(order SortOrder) *Options {
 	return o
 }
 
-// MakePassive turns this into a passive offer
+// MakePassive turns this into a passive offer. Used with LoadOffers.
 func (o *Options) MakePassive() *Options {
 	o.passiveOffer = true
 	return o
+}
+
+// WithAsset is used to setup a path payment. This makes the Pay method
+// use "asset" as the sending asset, and sends no more than maxAmount units
+// of the asset. Used with Pay.
+func (o *Options) WithAsset(asset *Asset, maxAmount string) {
+	o.sendAsset = asset
+	o.maxAmount = maxAmount
+}
+
+// Through adds "asset" as a routing point in the payment path.
+func (o *Options) Through(asset *Asset) {
+	o.path = append(o.path, asset)
 }
 
 // TxOptions is a deprecated alias for TxOptoins
