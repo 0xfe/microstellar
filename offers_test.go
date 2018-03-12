@@ -85,8 +85,8 @@ func ExampleMicroStellar_ManageOffer() {
 			OfferType:  OfferCreate,
 			SellAsset:  USD,
 			BuyAsset:   NativeAsset,
-			Price:      "0.4",
-			SellAmount: "200",
+			Price:      "2",
+			SellAmount: "100",
 		})
 
 	if err != nil {
