@@ -30,8 +30,8 @@ type OfferParams struct {
 	// The asset that you want to buy on the DEX.
 	BuyAsset *Asset
 
-	// How much you're willing to pay (in SellAsset units) per unit of BuyAsset.
-	BuyPrice string
+	// How much you're willing to pay (in BuyAsset units) per unit of SellAsset.
+	Price string
 
 	// How many units of SellAsset are you selling?
 	SellAmount string
@@ -107,10 +107,8 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 	rate := build.Rate{
 		Selling: genBuildAsset(params.SellAsset),
 		Buying:  genBuildAsset(params.BuyAsset),
-		Price:   build.Price(params.BuyPrice),
+		Price:   build.Price(params.Price),
 	}
-
-	amount := build.Amount(params.SellAmount)
 
 	var offerID uint64
 	if params.OfferID != "" {
@@ -123,10 +121,13 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 	var builder build.ManageOfferBuilder
 	switch params.OfferType {
 	case OfferCreate:
+		amount := build.Amount(params.SellAmount)
 		builder = build.CreateOffer(rate, amount)
 	case OfferCreatePassive:
+		amount := build.Amount(params.SellAmount)
 		builder = build.CreatePassiveOffer(rate, amount)
 	case OfferUpdate:
+		amount := build.Amount(params.SellAmount)
 		builder = build.UpdateOffer(rate, amount, build.OfferID(offerID))
 	case OfferDelete:
 		builder = build.DeleteOffer(rate, build.OfferID(offerID))
@@ -147,10 +148,10 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 }
 
 // CreateOffer creates an offer to trade sellAmount of sellAsset held by sourceSeed for buyAsset at
-// buyPrice (per unit of buyAsset.) The offer is made on Stellar's decentralized exchange (DEX.)
+// price (which buy_unit-over-sell_unit.)  The offer is made on Stellar's decentralized exchange (DEX.)
 //
 // You can use add Opts().MakePassive() to make this a passive offer.
-func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*Options) error {
+func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsset *Asset, price string, sellAmount string, options ...*Options) error {
 	offerType := OfferCreate
 
 	if len(options) > 0 {
@@ -164,29 +165,29 @@ func (ms *MicroStellar) CreateOffer(sourceSeed string, sellAsset *Asset, buyAsse
 		SellAsset:  sellAsset,
 		SellAmount: sellAmount,
 		BuyAsset:   buyAsset,
-		BuyPrice:   buyPrice,
+		Price:      price,
 	}, options...)
 }
 
 // UpdateOffer updates the existing offer with ID offerID on the DEX.
-func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, sellAmount string, options ...*Options) error {
+func (ms *MicroStellar) UpdateOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, price string, sellAmount string, options ...*Options) error {
 	return ms.ManageOffer(sourceSeed, &OfferParams{
 		OfferType:  OfferUpdate,
 		SellAsset:  sellAsset,
 		SellAmount: sellAmount,
 		BuyAsset:   buyAsset,
-		BuyPrice:   buyPrice,
+		Price:      price,
 		OfferID:    offerID,
 	}, options...)
 }
 
 // DeleteOffer deletes the specified parameters (assets, price, ID) on the DEX.
-func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, buyPrice string, options ...*Options) error {
+func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset *Asset, buyAsset *Asset, price string, options ...*Options) error {
 	return ms.ManageOffer(sourceSeed, &OfferParams{
-		OfferType: OfferUpdate,
+		OfferType: OfferDelete,
 		SellAsset: sellAsset,
 		BuyAsset:  buyAsset,
-		BuyPrice:  buyPrice,
+		Price:     price,
 		OfferID:   offerID,
 	}, options...)
 }

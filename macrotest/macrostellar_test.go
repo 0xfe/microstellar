@@ -5,6 +5,8 @@ package macrotest
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"testing"
@@ -15,7 +17,7 @@ import (
 )
 
 func init() {
-	logrus.SetLevel(logrus.DebugLevel)
+	// logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
 }
 
@@ -61,7 +63,7 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 
 	if floatBalance == 0 {
 		debugf("Looks like it's empty. Funding via source account...")
-		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "100", microstellar.Opts().WithMemoText("initial fund"))
+		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "200", microstellar.Opts().WithMemoText("initial fund"))
 		if err != nil {
 			log.Fatalf("Funding failed: %v", microstellar.ErrorString(err))
 		}
@@ -96,8 +98,8 @@ func showBalance(ms *microstellar.MicroStellar, asset *microstellar.Asset, name,
 	}
 }
 
-// TestMicroStellarEndToEnd implements the full end-to-end test
-func TestMicroStellarEndToEnd(t *testing.T) {
+// TestMicroStellarPayments implement end-to-end payment tests
+func TestMicroStellarPayments(t *testing.T) {
 	const fundSourceSeed = "SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX"
 
 	ms := microstellar.New("test")
@@ -242,4 +244,154 @@ func TestMicroStellarEndToEnd(t *testing.T) {
 	showBalance(ms, USD, "signer2", keyPair5.Address)
 
 	debugf("Total payments on distributor's ledger: %d", paymentsReceived)
+}
+
+func showOffersAndBalances(ms *microstellar.MicroStellar, asset *microstellar.Asset, name, address string) {
+	showBalance(ms, asset, name, address)
+
+	offers, err := ms.LoadOffers(address)
+
+	if err != nil {
+		log.Fatalf("LoadOffers: %+v", microstellar.ErrorString(err))
+	}
+
+	debugf("Offers by %s: %d avaialable", name, len(offers))
+	for i, o := range offers {
+		offerJSON, err := json.MarshalIndent(o, "", "  ")
+		if err != nil {
+			log.Fatalf("MarshalIndent: %v", err)
+		}
+		debugf("Offer %d:\n%s", i, string(offerJSON))
+	}
+}
+
+// TestMicroStellarOffers implement end-to-end DEX tests
+func TestMicroStellarOffers(t *testing.T) {
+	const fundSourceSeed = "SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX"
+
+	ms := microstellar.New("test")
+
+	// Create a key pair
+	issuer := createFundedAccount(ms, fundSourceSeed, true)
+	bob := createFundedAccount(ms, issuer.Seed, false)
+	mary := createFundedAccount(ms, issuer.Seed, false)
+
+	log.Print("Pair1 (issuer): ", issuer)
+	log.Print("Pair2 (bob): ", bob)
+	log.Print("Pair3 (mary): ", mary)
+
+	debugf("Creating new USD asset issued by %s (issuer)...", issuer.Address)
+	USD := microstellar.NewAsset("USD", issuer.Address, microstellar.Credit4Type)
+
+	debugf("Creating USD trustline for %s (bob)...", bob.Address)
+	err := ms.CreateTrustLine(bob.Seed, USD, "1000000")
+
+	if err != nil {
+		log.Fatalf("CreateTrustLine: %+v", err)
+	}
+
+	debugf("Creating USD trustline for %s (mary)...", mary.Address)
+	err = ms.CreateTrustLine(mary.Seed, USD, "1000000")
+
+	if err != nil {
+		log.Fatalf("CreateTrustLine: %+v", err)
+	}
+
+	log.Print("Issuing USD to bob...")
+	err = ms.Pay(issuer.Seed, bob.Address, "500000", USD)
+
+	if err != nil {
+		log.Fatalf("Pay: %+v", microstellar.ErrorString(err))
+	}
+
+	log.Print("Issuing USD to mary...")
+	err = ms.Pay(issuer.Seed, mary.Address, "500000", USD)
+
+	if err != nil {
+		log.Fatalf("Pay: %+v", microstellar.ErrorString(err))
+	}
+
+	// Check balances
+	showBalance(ms, USD, "bob", bob.Address)
+	showBalance(ms, USD, "mary", mary.Address)
+
+	log.Print("Creating offer for Bob to sell 100 USD...")
+	err = ms.CreateOffer(bob.Seed, USD, microstellar.NativeAsset, "2", "50")
+
+	if err != nil {
+		log.Fatalf("CreateOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	// Check balances
+	showOffersAndBalances(ms, USD, "bob", bob.Address)
+
+	debugf("Creating offer for Mary to buy Bob's assets...")
+	err = ms.CreateOffer(mary.Seed, microstellar.NativeAsset, USD, "0.5", "100")
+
+	if err != nil {
+		log.Fatalf("CreateOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	debugf("Expecting 0 offers for Mary and Bob...")
+	showOffersAndBalances(ms, USD, "bob", bob.Address)
+	showOffersAndBalances(ms, USD, "mary", mary.Address)
+
+	debugf("Creating another offer from Mary to sell XLM...")
+	err = ms.CreateOffer(mary.Seed, microstellar.NativeAsset, USD, "0.5", "20")
+
+	if err != nil {
+		log.Fatalf("CreateOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	// Load her offers to get qty and offer ID
+	offers, err := ms.LoadOffers(mary.Address)
+
+	if err != nil {
+		log.Fatalf("LoadOffers: %+v", microstellar.ErrorString(err))
+	}
+
+	if len(offers) != 1 {
+		log.Fatalf("wrong number of offers, want %v, got %v", 1, len(offers))
+	}
+
+	// Update her offer
+	debugf("Updating mary's offer...")
+	offerID := fmt.Sprintf("%d", offers[0].ID)
+	err = ms.UpdateOffer(mary.Seed, offerID, microstellar.NativeAsset, USD, "0.5", "5")
+
+	if err != nil {
+		log.Fatalf("UpdateOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	// Load her offers to get amount
+	offers, err = ms.LoadOffers(mary.Address)
+
+	if err != nil {
+		log.Fatalf("LoadOffers: %+v", microstellar.ErrorString(err))
+	}
+
+	if offers[0].Amount != "5.0000000" {
+		showOffersAndBalances(ms, USD, "mary", mary.Address)
+		log.Fatalf("wrong amount, want %v, got %v", "5.0000000", offers[0].Amount)
+	}
+
+	// Delete the offer
+	debugf("Deleting mary's offer...")
+	err = ms.DeleteOffer(mary.Seed, offerID, microstellar.NativeAsset, USD, "0.5")
+
+	if err != nil {
+		log.Fatalf("DeleteOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	// Load her offers to get amount
+	offers, err = ms.LoadOffers(mary.Address)
+
+	if err != nil {
+		log.Fatalf("LoadOffers: %+v", microstellar.ErrorString(err))
+	}
+
+	if len(offers) != 0 {
+		showOffersAndBalances(ms, USD, "mary", mary.Address)
+		log.Fatalf("wrong number of offers, want %v, got %v", 0, len(offers))
+	}
 }

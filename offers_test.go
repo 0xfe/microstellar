@@ -14,10 +14,10 @@ func ExampleMicroStellar_CreateOffer() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
-	// Sell 200 USD on the DEX for lumens (at 0.5 USD/lumen). This is a passive
-	// offer.
+	// Sell 200 USD on the DEX for lumens (at 2 lumens per USD). This is a passive
+	// offer. (This is equivalent to an offer to buy 400 lumens for 200 USD.)
 	err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
-		USD, NativeAsset, "0.5", "200",
+		USD, NativeAsset, "2", "200",
 		Opts().MakePassive())
 
 	if err != nil {
@@ -37,9 +37,9 @@ func ExampleMicroStellar_UpdateOffer() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
-	// Update Offer ID 23456 to sell 200 USD on the DEX for lumens (at 0.4 USD/lumen).
+	// Update Offer ID 23456 to sell 200 USD on the DEX for lumens (at 1 lumen / USD.)
 	err := ms.UpdateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
-		"23456", USD, NativeAsset, "0.4", "200")
+		"23456", USD, NativeAsset, "1", "200")
 
 	if err != nil {
 		log.Fatalf("UpdateOffer: %v", err)
@@ -79,13 +79,13 @@ func ExampleMicroStellar_ManageOffer() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
 
-	// Create an offer to buy 200 lumens for USD 0.4 each.
+	// Create an offer to buy 200 lumens at 2 lumens/dollar.
 	err := ms.ManageOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
 		&OfferParams{
 			OfferType:  OfferCreate,
 			SellAsset:  USD,
 			BuyAsset:   NativeAsset,
-			BuyPrice:   "0.4",
+			Price:      "0.4",
 			SellAmount: "200",
 		})
 
