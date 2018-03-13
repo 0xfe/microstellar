@@ -157,6 +157,16 @@ err := ms.Pay(
   Opts().
     WithAsset(XLM, "40"). // we spend no more than 40 XLM
     Through(USD, EUR))    // go through USD and EUR
+
+// Microstellar can automatically find paths for you, if you don't know what paths
+// to take beforehand.
+err := ms.Pay(
+  "SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", // from
+  "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", // to
+  "5000", INR, // destination receives 5000 INR
+  Opts().
+    WithAsset(XLM, "40"). // we spend no more than 40 XLM
+    FindPathFrom("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM") // from address
 ```
 
 #### Streaming

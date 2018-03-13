@@ -236,7 +236,6 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	debugf("Executing path payment...")
 	err = ms.Pay(bob.Seed, mary.Address, "5", INR,
 		microstellar.Opts().WithAsset(XLM, "10").Through(USD, EUR))
-
 	if err != nil {
 		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
 	}
@@ -250,4 +249,16 @@ func TestMicroStellarPathPayments(t *testing.T) {
 		log.Fatalf("FindPaths: %+v", err)
 	}
 	debugf("FindPaths: found %d paths.", len(paths))
+
+	debugf("Executing path payment with pathfinder...")
+	err = ms.Pay(bob.Seed, mary.Address, "5", INR,
+		microstellar.Opts().WithAsset(XLM, "10").FindPathFrom(bob.Address))
+	if err != nil {
+		log.Fatalf("Pay: %v", microstellar.ErrorString(err))
+	}
+
+	debugf("After automatic path payment...")
+	showBalance(ms, INR, "bob", bob.Address)
+	showBalance(ms, INR, "mary", mary.Address)
+
 }
