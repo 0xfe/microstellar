@@ -103,7 +103,7 @@ ms.Pay(
   USD, 10, microstellar.Opts().WithMemo("funny money"))
 ```
 
-#### Multisignature payments
+#### Multisignature transactions
 ```go
 // Add two signers with weight 1 to account
 ms.AddSigner(
@@ -136,7 +136,7 @@ ms.PayNative(
 
 ```
 
-#### Trade assets on the Stellar DEX and make path payments
+#### Trade assets on the Stellar DEX
 ```go
 // This is equivalent to an offer to buy 100 USD worth of lumens at 2 lumens/USD.
 err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
@@ -147,7 +147,10 @@ err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK"
 err := ms.UpdateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
   USD, NativeAsset, "3", "150",
   Opts().MakePassive())
+```
 
+#### Make path payments with automatic path-finding
+```go
 // Path payments let you transparently convert currencies. Pay 5000 INR with XLM,
 // going through USD and EUR. Spend no more than 40 lumens on this transaction.
 err := ms.Pay(
