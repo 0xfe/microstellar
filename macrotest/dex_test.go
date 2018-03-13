@@ -227,7 +227,7 @@ func TestMicroStellarPathPayments(t *testing.T) {
 
 	// Call the path finder
 	// logrus.SetLevel(logrus.DebugLevel)
-	paths, err := ms.FindPaths(bob.Address, mary.Address, INR, "5")
+	paths, err := ms.FindPaths(bob.Address, mary.Address, INR, "5", microstellar.Opts().WithAsset(XLM, "5"))
 	debugf("Got: %+v", paths)
 
 	debugf("Executing path payment...")

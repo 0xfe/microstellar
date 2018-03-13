@@ -57,6 +57,11 @@ microstellar.FundWithFriendBot(pair.Address)
 
 #### Make payments and check balances
 
+Amounts in Microstellar are typically represented as strings, to protect users from accidentaly
+perform floating point operations on them. The convenience methods `ParseAmount` and `ToAmountString`
+to convert the strings to `int64` values that represent a `10e7` multiple of the numeric
+value. E.g., `ParseAmount("2.5") == int64(25000000)`.
+
 ```go
 // Pay someone 3 lumens.
 ms.PayNative(

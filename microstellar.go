@@ -21,6 +21,14 @@
 // the transaction -- and it's okay to use a public address instead of a seed for sourceSeed.
 // See examples for how to use Options.
 //
+// Amounts in Microstellar are typically represented as strings, to protect users from accidentaly
+// performing floating point operations on them. The convenience methods `ParseAmount` and `ToAmountString`
+// to convert the strings to `int64` values that represent a `10e7` multiple of the numeric
+// value. E.g.,
+//
+//   ParseAmount("2.5") == int64(25000000)
+//   ToAmountString(1000000) == "1.000000"
+//
 // You can use ErrorString(...) to extract the Horizon error from a returned error.
 package microstellar
 

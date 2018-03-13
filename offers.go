@@ -66,12 +66,12 @@ type PathResponse struct {
 		Prev Link `json:"prev"`
 	} `json:"_links"`
 	Embedded struct {
-		Records []Path `json:"records"`
+		Records []HorizonPath `json:"records"`
 	} `json:"_embedded"`
 }
 
-// Path is a payment path
-type Path struct {
+// HorizonPath is a payment path returned by a horizon server
+type HorizonPath struct {
 	DestAmount        string `json:"destination_amount"`
 	DestAssetCode     string `json:"destination_asset_code"`
 	DestAssetIssuer   string `json:"destination_asset_issuer"`
@@ -85,6 +85,15 @@ type Path struct {
 		AssetIssuer string `json:"asset_issuer"`
 		AssetType   string `json:"asset_type"`
 	} `json:"path"`
+}
+
+// Path is a microstellar payment path
+type Path struct {
+	DestAsset    *Asset
+	DestAmount   string
+	SourceAsset  *Asset
+	SourceAmount string
+	Hops         []*Asset
 }
 
 // LoadOffers returns all existing trade offers made by address.
@@ -232,7 +241,8 @@ func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset
 	}, options...)
 }
 
-// FindPaths finds payment paths between source and dest assets.
+// FindPaths finds payment paths between source and dest assets. Use Options.WithAsset
+// to filter the results by source asset and max spend.
 func (ms *MicroStellar) FindPaths(sourceAddress string, destAddress string, destAsset *Asset, destAmount string, options ...*Options) ([]Path, error) {
 	tx := NewTx(ms.networkName, ms.params)
 	client := tx.GetClient()
@@ -262,10 +272,53 @@ func (ms *MicroStellar) FindPaths(sourceAddress string, destAddress string, dest
 	var pathResponse PathResponse
 	bytes, _ := ioutil.ReadAll(resp.Body)
 	body := string(bytes)
-
 	debugf("FindPaths", "Got Body: %+v", body)
-	// json.NewDecoder(resp.Body).Decode(&path)
+	err = json.Unmarshal(bytes, &pathResponse)
+	if err != nil {
+		return nil, errors.Errorf("error unmarshalling response: %v", err)
+	}
 
-	json.Unmarshal(bytes, &pathResponse)
-	return pathResponse.Embedded.Records, nil
+	opts := mergeOptions(options)
+
+	returnPath := []Path{}
+	for _, path := range pathResponse.Embedded.Records {
+		hops := []*Asset{}
+		for _, hop := range path.Path {
+			hops = append(hops, NewAsset(hop.AssetCode, hop.AssetIssuer, AssetType(hop.AssetType)))
+		}
+
+		sourceAsset := NewAsset(path.SourceAssetCode, path.SourceAssetIssuer, AssetType(path.SourceAssetType))
+		if opts.sendAsset != nil && !opts.sendAsset.Equals(*sourceAsset) {
+			// Filtered
+			continue
+		}
+
+		if opts.maxAmount != "" {
+			maxAmount, err := ParseAmount(opts.maxAmount)
+			if err != nil {
+				return nil, errors.Errorf("error parsing maxAmount: %s: %v", opts.maxAmount, err)
+			}
+
+			pathAmount, err := ParseAmount(path.SourceAmount)
+			if err != nil {
+				return nil, errors.Errorf("error parsing path.source_amount: %s: %v", path.SourceAmount, err)
+			}
+
+			if pathAmount > maxAmount {
+				// Too expensive, skip
+				continue
+			}
+		}
+
+		returnPath = append(returnPath,
+			Path{
+				SourceAsset:  sourceAsset,
+				SourceAmount: path.SourceAmount,
+				DestAsset:    NewAsset(path.DestAssetCode, path.DestAssetIssuer, AssetType(path.DestAssetType)),
+				DestAmount:   path.DestAmount,
+				Hops:         hops,
+			})
+	}
+
+	return returnPath, nil
 }

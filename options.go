@@ -150,7 +150,7 @@ func (o *Options) MakePassive() *Options {
 
 // WithAsset is used to setup a path payment. This makes the Pay method
 // use "asset" as the sending asset, and sends no more than maxAmount units
-// of the asset. Used with Pay.
+// of the asset. Used with Pay and FindPaths.
 //
 // E.g.,
 //   ms.Pay(sourceSeed, address, "20", INR, Opts().WithAsset(NativeAsset, "20").Through(USD, EUR)
