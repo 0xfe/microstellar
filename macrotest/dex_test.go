@@ -225,8 +225,13 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	showBalance(ms, INR, "bob", bob.Address)
 	showBalance(ms, INR, "mary", mary.Address)
 
+	// Call the path finder
+	// logrus.SetLevel(logrus.DebugLevel)
+	paths, err := ms.FindPaths(bob.Address, mary.Address, INR, "5")
+	debugf("Got: %+v", paths)
+
 	debugf("Executing path payment...")
-	err := ms.Pay(bob.Seed, mary.Address, "5", INR,
+	err = ms.Pay(bob.Seed, mary.Address, "5", INR,
 		microstellar.Opts().WithAsset(XLM, "10").Through(USD, EUR))
 
 	if err != nil {

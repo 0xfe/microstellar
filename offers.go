@@ -1,7 +1,12 @@
 package microstellar
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/stellar/go/build"
@@ -45,6 +50,41 @@ type Offer horizon.Offer
 
 func newOfferFromHorizon(offer horizon.Offer) Offer {
 	return Offer(offer)
+}
+
+// Link is typically embedded in a horizon response
+type Link struct {
+	Href      string `json:"href"`
+	Templated bool   `json:"templated,omitempty"`
+}
+
+// PathResponse is what the horizon server returns
+type PathResponse struct {
+	Links struct {
+		Self Link `json:"self"`
+		Next Link `json:"next"`
+		Prev Link `json:"prev"`
+	} `json:"_links"`
+	Embedded struct {
+		Records []Path `json:"records"`
+	} `json:"_embedded"`
+}
+
+// Path is a payment path
+type Path struct {
+	DestAmount        string `json:"destination_amount"`
+	DestAssetCode     string `json:"destination_asset_code"`
+	DestAssetIssuer   string `json:"destination_asset_issuer"`
+	DestAssetType     string `json:"destination_asset_type"`
+	SourceAmount      string `json:"source_amount"`
+	SourceAssetCode   string `json:"source_asset_code"`
+	SourceAssetIssuer string `json:"source_asset_issuer"`
+	SourceAssetType   string `json:"source_asset_type"`
+	Path              []struct {
+		AssetCode   string `json:"asset_code"`
+		AssetIssuer string `json:"asset_issuer"`
+		AssetType   string `json:"asset_type"`
+	} `json:"path"`
 }
 
 // LoadOffers returns all existing trade offers made by address.
@@ -190,4 +230,42 @@ func (ms *MicroStellar) DeleteOffer(sourceSeed string, offerID string, sellAsset
 		Price:     price,
 		OfferID:   offerID,
 	}, options...)
+}
+
+// FindPaths finds payment paths between source and dest assets.
+func (ms *MicroStellar) FindPaths(sourceAddress string, destAddress string, destAsset *Asset, destAmount string, options ...*Options) ([]Path, error) {
+	tx := NewTx(ms.networkName, ms.params)
+	client := tx.GetClient()
+	baseURL := strings.TrimRight(client.URL, "/") + "/paths"
+
+	query := url.Values{}
+
+	query.Add("source_account", sourceAddress)
+	query.Add("destination_account", destAddress)
+
+	query.Add("destination_asset_type", string(destAsset.Type))
+	query.Add("destination_asset_code", destAsset.Code)
+	query.Add("destination_asset_issuer", destAsset.Issuer)
+	query.Add("destination_amount", destAmount)
+
+	endpoint := fmt.Sprintf(baseURL+"?%s", query.Encode())
+	if _, err := url.Parse(endpoint); err != nil {
+		return nil, errors.Errorf("endpoint parse error: %v", err)
+	}
+
+	debugf("FindPaths", "querying endpoint: %s", endpoint)
+	resp, err := client.HTTP.Get(endpoint)
+	if err != nil {
+		return nil, errors.Errorf("failed to query server: %v", err)
+	}
+
+	var pathResponse PathResponse
+	bytes, _ := ioutil.ReadAll(resp.Body)
+	body := string(bytes)
+
+	debugf("FindPaths", "Got Body: %+v", body)
+	// json.NewDecoder(resp.Body).Decode(&path)
+
+	json.Unmarshal(bytes, &pathResponse)
+	return pathResponse.Embedded.Records, nil
 }
