@@ -228,7 +228,10 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	// Call the path finder
 	// logrus.SetLevel(logrus.DebugLevel)
 	paths, err := ms.FindPaths(bob.Address, mary.Address, INR, "5", microstellar.Opts().WithAsset(XLM, "5"))
-	debugf("Got: %+v", paths)
+	if err != nil {
+		log.Fatalf("FindPaths: %+v", err)
+	}
+	debugf("FindPaths: found %d paths.", len(paths))
 
 	debugf("Executing path payment...")
 	err = ms.Pay(bob.Seed, mary.Address, "5", INR,
@@ -241,4 +244,10 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	debugf("After path payment...")
 	showBalance(ms, INR, "bob", bob.Address)
 	showBalance(ms, INR, "mary", mary.Address)
+
+	paths, err = ms.FindPaths(bob.Address, mary.Address, INR, "5", microstellar.Opts().WithAsset(XLM, "5"))
+	if err != nil {
+		log.Fatalf("FindPaths: %+v", err)
+	}
+	debugf("FindPaths: found %d paths.", len(paths))
 }

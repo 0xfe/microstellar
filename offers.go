@@ -282,11 +282,6 @@ func (ms *MicroStellar) FindPaths(sourceAddress string, destAddress string, dest
 
 	returnPath := []Path{}
 	for _, path := range pathResponse.Embedded.Records {
-		hops := []*Asset{}
-		for _, hop := range path.Path {
-			hops = append(hops, NewAsset(hop.AssetCode, hop.AssetIssuer, AssetType(hop.AssetType)))
-		}
-
 		sourceAsset := NewAsset(path.SourceAssetCode, path.SourceAssetIssuer, AssetType(path.SourceAssetType))
 		if opts.sendAsset != nil && !opts.sendAsset.Equals(*sourceAsset) {
 			// Filtered
@@ -308,6 +303,13 @@ func (ms *MicroStellar) FindPaths(sourceAddress string, destAddress string, dest
 				// Too expensive, skip
 				continue
 			}
+		}
+
+		debugf("FindPaths", "cost: %s path source: %s(%s) %s", path.SourceAmount, sourceAsset.Code, sourceAsset.Type, sourceAsset.Issuer)
+		hops := []*Asset{}
+		for _, hop := range path.Path {
+			debugf("FindPaths", "hop: %s(%s) %s", hop.AssetCode, hop.AssetType, hop.AssetIssuer)
+			hops = append(hops, NewAsset(hop.AssetCode, hop.AssetIssuer, AssetType(hop.AssetType)))
 		}
 
 		returnPath = append(returnPath,
