@@ -171,7 +171,19 @@ func (ms *MicroStellar) PayNative(sourceSeed string, targetAddress string, amoun
 
 // Pay lets you make payments with credit assets.
 //
-//   ms.Pay("source_seed", "target_address", "3", NativeAsset, microstellar.Opts().WithMemoText("for shelter"))
+//   USD := microstellar.NewAsset("USD", "ISSUERSEED", microstellar.Credit4Type)
+//   ms.Pay("source_seed", "target_address", "3", USD, microstellar.Opts().WithMemoText("for shelter"))
+//
+// Pay also lets you make path payments. E.g., Mary pays Bob 2000 INR with XLM (lumens), using the
+// path XLM -> USD -> EUR -> INR, spending no more than 20 XLM (lumens.)
+//
+//   XLM := microstellar.NativeAsset
+//   USD := microstellar.NewAsset("USD", "ISSUERSEED", microstellar.Credit4Type)
+//   EUR := microstellar.NewAsset("EUR", "ISSUERSEED", microstellar.Credit4Type)
+//   INR := microstellar.NewAsset("INR", "ISSUERSEED", microstellar.Credit4Type)
+//
+//   ms.Pay("marys_seed", "bobs_address", "2000", INR,
+//       microstellar.Opts().WithAsset(XLM, "20").Through(USD, EUR).WithMemoText("take your rupees!"))
 func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount string, asset *Asset, options ...*Options) error {
 	if err := asset.Validate(); err != nil {
 		return errors.Wrap(err, "can't pay")
@@ -199,7 +211,19 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 	tx := NewTx(ms.networkName, ms.params)
 
 	if len(options) > 0 {
-		tx.SetOptions(options[0])
+		opts := options[0]
+		tx.SetOptions(opts)
+
+		// Is this a path payment?
+		if opts.sendAsset != nil {
+			payPath := build.PayWith(asset.ToStellarAsset(), opts.maxAmount)
+
+			for _, through := range opts.path {
+				payPath = payPath.Through(through.ToStellarAsset())
+			}
+
+			paymentMuts = append(paymentMuts, payPath)
+		}
 	}
 
 	tx.Build(sourceAccount(sourceSeed), build.Payment(paymentMuts...))

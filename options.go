@@ -151,14 +151,22 @@ func (o *Options) MakePassive() *Options {
 // WithAsset is used to setup a path payment. This makes the Pay method
 // use "asset" as the sending asset, and sends no more than maxAmount units
 // of the asset. Used with Pay.
-func (o *Options) WithAsset(asset *Asset, maxAmount string) {
+//
+// E.g.,
+//   ms.Pay(sourceSeed, address, "20", INR, Opts().WithAsset(NativeAsset, "20").Through(USD, EUR)
+func (o *Options) WithAsset(asset *Asset, maxAmount string) *Options {
 	o.sendAsset = asset
 	o.maxAmount = maxAmount
+	return o
 }
 
 // Through adds "asset" as a routing point in the payment path.
-func (o *Options) Through(asset *Asset) {
-	o.path = append(o.path, asset)
+//
+// E.g.,
+//   ms.Pay(sourceSeed, address, "20", INR, Opts().WithAsset(NativeAsset, "20").Through(USD, EUR)
+func (o *Options) Through(asset ...*Asset) *Options {
+	o.path = append(o.path, asset...)
+	return o
 }
 
 // TxOptions is a deprecated alias for TxOptoins

@@ -272,6 +272,37 @@ func ExampleMicroStellar_Pay_multisig() {
 	// Output: ok
 }
 
+// This example makes a path payment from XLM to INR via USD and EUR.
+func ExampleMicroStellar_Pay_path() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	XLM := NativeAsset
+
+	// Custom USD, EUR, and INR assets issued by Bank of America
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+	EUR := NewAsset("EUR", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+	INR := NewAsset("INR", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Pay 5000 INR with XLM, going through USD and EUR. Spend no more than 40 lumens on this
+	// transaction.
+	err := ms.Pay(
+		"SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", // from
+		"GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", // to
+		"5000", INR, // they receive 5000 INR
+		Opts().
+			WithAsset(XLM, "40"). // we spend no more than 40 XLM
+			Through(USD, EUR))    // go through USD and EUR
+
+	if err != nil {
+		log.Fatalf("Pay: %v", ErrorString(err))
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
 // This example creates a trust line to a credit asset.
 func ExampleMicroStellar_CreateTrustLine() {
 	// Create a new MicroStellar client connected to a fake network. To
