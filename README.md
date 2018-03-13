@@ -131,7 +131,7 @@ ms.PayNative(
 
 ```
 
-#### Trade assets on the Stellar DEX
+#### Trade assets on the Stellar DEX and make path payments
 ```go
 // This is equivalent to an offer to buy 100 USD worth of lumens at 2 lumens/USD.
 err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
@@ -142,6 +142,16 @@ err := ms.CreateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK"
 err := ms.UpdateOffer("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
   USD, NativeAsset, "3", "150",
   Opts().MakePassive())
+
+// Path payments let you transparently convert currencies. Pay 5000 INR with XLM,
+// going through USD and EUR. Spend no more than 40 lumens on this transaction.
+err := ms.Pay(
+  "SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", // from
+  "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", // to
+  "5000", INR, // destination receives 5000 INR
+  Opts().
+    WithAsset(XLM, "40"). // we spend no more than 40 XLM
+    Through(USD, EUR))    // go through USD and EUR
 ```
 
 #### Streaming
