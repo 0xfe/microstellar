@@ -216,9 +216,11 @@ func (ms *MicroStellar) Pay(sourceSeed string, targetAddress string, amount stri
 
 		// Is this a path payment?
 		if opts.sendAsset != nil {
-			payPath := build.PayWith(asset.ToStellarAsset(), opts.maxAmount)
+			debugf("Pay", "path payment: deposit %s with %s", asset.Code, opts.sendAsset.Code)
+			payPath := build.PayWith(opts.sendAsset.ToStellarAsset(), opts.maxAmount)
 
 			for _, through := range opts.path {
+				debugf("Pay", "path payment: through %s", through.Code)
 				payPath = payPath.Through(through.ToStellarAsset())
 			}
 

@@ -8,22 +8,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/pkg/errors"
-	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/strkey"
 )
 
 func debugf(method string, msg string, args ...interface{}) {
 	logrus.WithFields(logrus.Fields{"lib": "microstellar", "method": method}).Debugf(msg, args...)
-}
-
-// Helper functino to build a horizon asset from a microstellar one
-func genBuildAsset(asset *Asset) build.Asset {
-	return build.Asset{
-		Code:   asset.Code,
-		Issuer: asset.Issuer,
-		Native: asset.IsNative(),
-	}
 }
 
 // ValidAddress returns error if address is an invalid stellar address

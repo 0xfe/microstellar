@@ -172,7 +172,7 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	inrHolder := createFundedAccount(ms, issuer.Seed, false)
 
 	/*
-		Uncomment this section, and comment out the trustline loop below to speed up debugging.
+		Uncomment this section, and comment out the trustline loop below (and the funding above) to speed up debugging.
 
 			issuer := microstellar.KeyPair{"SAWFL2IHE3WVXYQ7DNU2ERZFMJ5ESN7G7Z4FKW5EATGDOB3M7SLVX7CG", "GCFEQ72ADTAK4NH5VQ2STBSSIBN5GSHSYPLIORH6ILW3LZEIJ7XJKVDE"}
 			bob := microstellar.KeyPair{"SCXTE2J7YBRM7UY5RRD7AH3DLMCSOAK4EM7VXK7T7ZUBUYZJL5P2XXJM", "GCBPBDZNVOKXW5DZIMNCUQ4UQAQLZNPHIAVW2FHUDXY72DNSMVJFXUBK"}
@@ -197,23 +197,23 @@ func TestMicroStellarPathPayments(t *testing.T) {
 
 	debugf("Creating USD, EUR, and INR trustlines for everyone...")
 	for i, k := range []microstellar.KeyPair{bob, mary, usdHolder, eurHolder, inrHolder} {
-		debugf("Keypair %d USD", i)
+		debugf("Keypair %d USD", i+1)
 		failOnError0("CreateTrustLine", ms.CreateTrustLine(k.Seed, USD, "1000000"))
 		failOnError0("Pay (issue)", ms.Pay(issuer.Seed, k.Address, "500000", USD))
 
-		debugf("Keypair %d EUR", i)
+		debugf("Keypair %d EUR", i+1)
 		failOnError0("CreateTrustLine", ms.CreateTrustLine(k.Seed, EUR, "1000000"))
 		failOnError0("Pay (issue)", ms.Pay(issuer.Seed, k.Address, "500000", EUR))
 
-		debugf("Keypair %d INR", i)
+		debugf("Keypair %d INR", i+1)
 		failOnError0("CreateTrustLine", ms.CreateTrustLine(k.Seed, INR, "1000000"))
 		failOnError0("Pay (issue)", ms.Pay(issuer.Seed, k.Address, "500000", INR))
 	}
 
 	debugf("Creating offers on the DEX...")
-	failOnError0("CreateOffer (usdHolder)", ms.CreateOffer(usdHolder.Seed, USD, XLM, "1", "10"))
-	failOnError0("CreateOffer (eurHolder)", ms.CreateOffer(eurHolder.Seed, EUR, USD, "1", "10"))
-	failOnError0("CreateOffer (inrHolder)", ms.CreateOffer(inrHolder.Seed, INR, EUR, "1", "10"))
+	failOnError0("CreateOffer (usdHolder)", ms.CreateOffer(usdHolder.Seed, USD, XLM, "1", "20"))
+	failOnError0("CreateOffer (eurHolder)", ms.CreateOffer(eurHolder.Seed, EUR, USD, "1", "20"))
+	failOnError0("CreateOffer (inrHolder)", ms.CreateOffer(inrHolder.Seed, INR, EUR, "1", "20"))
 
 	// Show offers
 	showOffersAndBalances(ms, USD, "usdHolder", usdHolder.Address)

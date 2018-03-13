@@ -105,8 +105,8 @@ func (ms *MicroStellar) ManageOffer(sourceSeed string, params *OfferParams, opti
 	}
 
 	rate := build.Rate{
-		Selling: genBuildAsset(params.SellAsset),
-		Buying:  genBuildAsset(params.BuyAsset),
+		Selling: params.SellAsset.ToStellarAsset(),
+		Buying:  params.BuyAsset.ToStellarAsset(),
 		Price:   build.Price(params.Price),
 	}
 
