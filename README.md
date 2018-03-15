@@ -224,6 +224,8 @@ for i, s := range account.Signers {
   * If necessary, update the integration test in `macrotest/`
   * If necessary, add examples and verify that they show up in godoc
 
+**You can also support this project by sending lumens to GDEVC4BOVFMB46UHGJ6NKEBCQVY5WI56GOBWPG3QKS4QV4TKDLPE6AH6.**
+
 ### Environment Setup
 
 This package uses [dep](https://github.com/golang/dep) to manage dependencies. Before
