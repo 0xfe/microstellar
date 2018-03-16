@@ -172,6 +172,24 @@ err := ms.Pay(
     FindPathFrom("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM") // from address
 ```
 
+#### Bundle multiple operations into a single transaction
+```go
+// First, add Mary as a signer to Bob's account
+ms.AddSigner(bob.Seed, mary.Address, 1)
+
+// Start a mult-op transaction signed by Mary
+ms.Start(bob.Address,
+  microstellar.Opts().WithMemoText("multi-op").WithSigner(mary.Seed))
+
+ms.SetHomeDomain(bob.Address, "qubit.sh")
+ms.SetFlags(bob.Address, microstellar.FlagAuthRequired)
+ms.PayNative(bob.Address, mary.Address, "1")
+ms.PayNative(mary.Address, bob.Address, "0.5")
+
+// Sign and submit the transaction.
+err := ms.Submit()
+```
+
 #### Streaming
 
 ```go
