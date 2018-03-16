@@ -27,6 +27,8 @@ type Tx struct {
 	payload     string
 	submitted   bool
 	response    *horizon.TransactionSuccess
+	isMultiOp   bool                       // is this a multi-op transaction
+	ops         []build.TransactionMutator // all ops for multi-op
 	err         error
 }
 
@@ -83,6 +85,8 @@ func NewTx(networkName string, params ...Params) *Tx {
 		payload:     "",
 		submitted:   false,
 		response:    nil,
+		isMultiOp:   false,
+		ops:         []build.TransactionMutator{},
 		err:         nil,
 	}
 }
@@ -127,6 +131,17 @@ func sourceAccount(addressOrSeed string) build.SourceAccount {
 	return build.SourceAccount{AddressOrSeed: addressOrSeed}
 }
 
+// Start begins a new multi-op transaction with fees billed to account
+func (tx *Tx) Start(account string) {
+	sourceAccount := sourceAccount(account)
+	tx.ops = []build.TransactionMutator{
+		build.TransactionMutator(sourceAccount),
+		tx.network,
+		build.AutoSequence{SequenceProvider: tx.client},
+	}
+	tx.isMultiOp = true
+}
+
 // Build creates a new operation out of the provided mutators.
 func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.TransactionMutator) error {
 	if tx.err != nil {
@@ -143,12 +158,6 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 		return nil
 	}
 
-	muts = append([]build.TransactionMutator{
-		sourceAccount,
-		tx.network,
-		build.AutoSequence{SequenceProvider: tx.client},
-	}, muts...)
-
 	if tx.options != nil {
 		switch tx.options.memoType {
 		case MemoText:
@@ -161,9 +170,19 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 		}
 	}
 
-	builder, err := build.Transaction(muts...)
-	tx.builder = builder
-	tx.err = errors.Wrap(err, "could not build transaction")
+	if tx.isMultiOp {
+		tx.ops = append(tx.ops, muts...)
+	} else {
+		muts = append([]build.TransactionMutator{
+			sourceAccount,
+			tx.network,
+			build.AutoSequence{SequenceProvider: tx.client},
+		}, muts...)
+
+		builder, err := build.Transaction(muts...)
+		tx.builder = builder
+		tx.err = errors.Wrap(err, "could not build transaction")
+	}
 	return tx.err
 }
 
@@ -195,6 +214,10 @@ func (tx *Tx) Sign(keys ...string) error {
 
 	var txe build.TransactionEnvelopeBuilder
 	var err error
+
+	if tx.isMultiOp {
+		tx.builder, err = build.Transaction(tx.ops...)
+	}
 
 	debugf("Tx.Sign", "signing transaction, seq: %v", tx.builder.TX.SeqNum)
 	if tx.options != nil && len(tx.options.signerSeeds) > 0 {
