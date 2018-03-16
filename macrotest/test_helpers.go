@@ -13,7 +13,7 @@ func debugf(msg string, args ...interface{}) {
 }
 
 // Send unused friendbot funds here.
-const homeAddress string = "GB7RTQME2RAOPRBDFBICCP3UDLCIJOSP7ZWCW5IL7Z6L4FNVLZMEWX2G"
+const homeAddress string = "GCXZW4IEBTCQQ6JY4COH3O2SSCBUAMPJ4WM4EU2GWBZ4MNVZJSTISBOE"
 
 // Helper function to remove stupid "if err != nil" checks.
 func failOnError(i interface{}, err error) interface{} {
