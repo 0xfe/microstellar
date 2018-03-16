@@ -124,6 +124,7 @@ func (tx *Tx) Reset() {
 	tx.payload = ""
 	tx.submitted = false
 	tx.response = nil
+	tx.isMultiOp = false
 	tx.err = nil
 }
 
@@ -132,7 +133,7 @@ func sourceAccount(addressOrSeed string) build.SourceAccount {
 }
 
 // Start begins a new multi-op transaction with fees billed to account
-func (tx *Tx) Start(account string) {
+func (tx *Tx) Start(account string) *Tx {
 	sourceAccount := sourceAccount(account)
 	tx.ops = []build.TransactionMutator{
 		build.TransactionMutator(sourceAccount),
@@ -140,6 +141,8 @@ func (tx *Tx) Start(account string) {
 		build.AutoSequence{SequenceProvider: tx.client},
 	}
 	tx.isMultiOp = true
+
+	return tx
 }
 
 // Build creates a new operation out of the provided mutators.
