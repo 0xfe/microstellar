@@ -56,9 +56,9 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 	}
 
 	if floatBalance == 0 {
-		amount := "1000"
+		amount := "2000"
 		if !useFriendBot {
-			amount = "200"
+			amount = "300"
 		}
 
 		debugf("Looks like it's empty. Funding via source account...")
