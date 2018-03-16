@@ -56,12 +56,17 @@ func createFundedAccount(ms *microstellar.MicroStellar, fundSourceSeed string, u
 	}
 
 	if floatBalance == 0 {
+		amount := "1000"
+		if !useFriendBot {
+			amount = "200"
+		}
+
 		debugf("Looks like it's empty. Funding via source account...")
-		err := ms.FundAccount(fundSourceSeed, keyPair.Address, "200", microstellar.Opts().WithMemoText("initial fund"))
+		err := ms.FundAccount(fundSourceSeed, keyPair.Address, amount, microstellar.Opts().WithMemoText("initial fund"))
 		if err != nil {
 			log.Fatalf("Funding failed: %v", microstellar.ErrorString(err))
 		}
-		debugf("Payment sent: 100 lumens")
+		debugf("Payment sent: %s lumens", amount)
 	} else {
 		debugf("Yay! Friendbot paid us. Sending some lumens back to fundSource...")
 		err := ms.PayNative(keyPair.Seed, homeAddress, "5000", microstellar.Opts().WithMemoText("friendbot payback"))

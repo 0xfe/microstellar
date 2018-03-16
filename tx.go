@@ -18,18 +18,19 @@ import (
 //
 // Unless you're hacking around in the guts, you should not need to use Tx.
 type Tx struct {
-	client      *horizon.Client
-	networkName string
-	network     build.Network
-	fake        bool
-	options     *Options
-	builder     *build.TransactionBuilder
-	payload     string
-	submitted   bool
-	response    *horizon.TransactionSuccess
-	isMultiOp   bool                       // is this a multi-op transaction
-	ops         []build.TransactionMutator // all ops for multi-op
-	err         error
+	client        *horizon.Client
+	networkName   string
+	network       build.Network
+	fake          bool
+	options       *Options
+	builder       *build.TransactionBuilder
+	payload       string
+	submitted     bool
+	response      *horizon.TransactionSuccess
+	isMultiOp     bool                       // is this a multi-op transaction
+	ops           []build.TransactionMutator // all ops for multi-op
+	sourceAccount string
+	err           error
 }
 
 // NewTx returns a new Tx that operates on the network specified by
@@ -134,6 +135,7 @@ func sourceAccount(addressOrSeed string) build.SourceAccount {
 
 // Start begins a new multi-op transaction with fees billed to account
 func (tx *Tx) Start(account string) *Tx {
+	tx.sourceAccount = account
 	sourceAccount := sourceAccount(account)
 	tx.ops = []build.TransactionMutator{
 		build.TransactionMutator(sourceAccount),
@@ -156,7 +158,7 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 		return tx.err
 	}
 
-	if tx.fake {
+	if tx.fake && !tx.isMultiOp {
 		tx.builder = &build.TransactionBuilder{}
 		return nil
 	}
@@ -200,7 +202,7 @@ func (tx *Tx) Sign(keys ...string) error {
 		return tx.err
 	}
 
-	if tx.builder == nil {
+	if tx.builder == nil && !tx.isMultiOp {
 		tx.err = errors.Errorf("can't sign empty transaction")
 		return tx.err
 	}
@@ -226,6 +228,9 @@ func (tx *Tx) Sign(keys ...string) error {
 	if tx.options != nil && len(tx.options.signerSeeds) > 0 {
 		txe, err = tx.builder.Sign(tx.options.signerSeeds...)
 	} else {
+		if len(keys) == 0 {
+			keys = []string{tx.sourceAccount}
+		}
 		txe, err = tx.builder.Sign(keys...)
 	}
 

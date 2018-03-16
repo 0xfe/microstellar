@@ -165,3 +165,40 @@ func TestMicroStellarPayments(t *testing.T) {
 
 	debugf("Total payments on distributor's ledger: %d", paymentsReceived)
 }
+
+func TestMicroStellarMultiOp(t *testing.T) {
+	const fundSourceSeed = "SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX"
+
+	ms := microstellar.New("test")
+
+	bob := createFundedAccount(ms, fundSourceSeed, true)
+	mary := createFundedAccount(ms, bob.Seed, false)
+
+	log.Print("Pair1 (bob): ", bob)
+	log.Print("Pair2 (mary): ", mary)
+
+	debugf("Adding mary as bob's signer...")
+	ms.AddSigner(bob.Seed, mary.Address, 1)
+
+	debugf("Starting self-signed multi-op transaction...")
+	ms.Start(bob.Seed, microstellar.Opts().WithMemoText("multi-op"))
+	ms.SetHomeDomain(bob.Address, "qubit.sh")
+	ms.SetFlags(bob.Address, microstellar.FlagAuthRequired)
+	ms.PayNative(bob.Address, mary.Address, "1")
+
+	err := ms.Submit()
+	if err != nil {
+		log.Fatalf("Submit: %v", microstellar.ErrorString(err))
+	}
+
+	debugf("Starting multi-op transaction with alternate signer...")
+	ms.Start(bob.Address, microstellar.Opts().WithMemoText("multi-op").WithSigner(mary.Seed))
+	ms.SetHomeDomain(bob.Address, "qubit.sh")
+	ms.SetFlags(bob.Address, microstellar.FlagAuthRequired)
+	ms.PayNative(bob.Address, mary.Address, "1")
+
+	err = ms.Submit()
+	if err != nil {
+		log.Fatalf("Submit: %v", microstellar.ErrorString(err))
+	}
+}

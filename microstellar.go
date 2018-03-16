@@ -129,6 +129,7 @@ func (ms *MicroStellar) signAndSubmit(tx *Tx, signers ...string) error {
 //   ms.Pay("marys_address", "bobs_address", "2000", INR)
 //   ms.Pay("marys_address", "bills_address", "2000", USD)
 //   ms.SetMasterWeight("bobs_address", 0)
+//   ms.SetHomeDomain("bobs_address", "qubit.sh")
 //   ms.Submit()
 //
 func (ms *MicroStellar) Start(sourceSeed string, options ...*Options) *MicroStellar {
@@ -144,9 +145,14 @@ func (ms *MicroStellar) Submit() error {
 	if !ms.isMultiOp {
 		return errors.Errorf("can't submit, not a multi-op transaction")
 	}
+
 	ms.tx.Sign()
 	ms.tx.Submit()
-	return ms.tx.Err()
+
+	err := ms.tx.Err()
+	ms.isMultiOp = false
+	ms.tx = nil
+	return err
 }
 
 // CreateKeyPair generates a new random key pair.

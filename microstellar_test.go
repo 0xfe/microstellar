@@ -454,6 +454,42 @@ func ExampleMicroStellar_SetFlags() {
 	// Output: ok
 }
 
+// This example demonstrates multi-op transactions.
+func ExampleMicroStellar_Start() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	feeSource := "GAKMTB3D6AOE5HZ3QK726TZG6A22NGN7B46B2UALVYCLLHLOBMUBXZBJ"
+	signer := "SDPLQEABOETMI7PPKJZYBHHW2BSA3424CI3V5ZRNN3NP2H7KYQOKY5ST"
+
+	// Start a new multi-op transaction and bill the fee to feeSource. Also provide the
+	// seed of the signer with authority to sign all operations.
+	ms.Start(feeSource, Opts().WithMemoText("multi-op").WithSigner(signer))
+
+	// Set the home domain to qubit.sh
+	err := ms.SetHomeDomain("GAD3LPHSTZHNZOJOPRS7OZ2P74VXFCP5J4QNYIGGHZ246XINHGKPJIQR", "qubit.sh")
+
+	if err != nil {
+		log.Fatalf("SetHomeDomain: %v", err)
+	}
+
+	// Set the AUTH_REQUIRED and AUTH_REVOCABLE flags on the account.
+	err = ms.SetFlags("GAD3LPHSTZHNZOJOPRS7OZ2P74VXFCP5J4QNYIGGHZ246XINHGKPJIQR", FlagAuthRequired|FlagAuthRevocable)
+
+	if err != nil {
+		log.Fatalf("SetFlags: %v", err)
+	}
+
+	// Sign and submit the transaction to the network
+	err = ms.Submit()
+	if err != nil {
+		log.Fatalf("Submit: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
 func ExampleMicroStellar_WatchPayments() {
 	// Create a new MicroStellar client connected to a fake network. To
 	// use a real network replace "fake" below with "test" or "public".
