@@ -9,6 +9,10 @@ MicroStellar is intended to be robust, well tested, and well documented -- we de
 
 To get started, follow the instructions below, or read the [API docs](https://godoc.org/github.com/0xfe/microstellar) for more.
 
+Also see:
+* [Lumen](http://github.com/0xfe/lumen), a commandline interface for Stellar, based on MicroStellar.
+* [Hacking Stellar](http://github.com/0xfe/hacking-stellar), an open-source e-book on working with Stellar.
+
 <a href="https://travis-ci.org/0xfe/microstellar"><img src="https://travis-ci.org/0xfe/microstellar.svg?branch=master"/></a>
 
 ## QuickStart
@@ -193,7 +197,7 @@ err := ms.Submit()
 #### Streaming
 
 ```go
-// Watch for payments to address. (The fake network sends payments every 200ms.)
+// Watch for payments to and from address.
 watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
 
 go func() {
@@ -207,22 +211,11 @@ go func() {
 // Stream the ledger for about a second then stop the watcher.
 time.Sleep(1 * time.Second)
 watcher.Done()
-```
 
-#### Other stuff
 
-```go
-// What's their USD balance?
-account, _ = ms.LoadAccount("GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM")
-log.Printf("USD Balance: %v USD", account.GetBalance(USD))
-
-// What's their home domain?
-log.Printf("Home domain: %s", account.HomeDomain)
-
-// Who are the signers on the account?
-for i, s := range account.Signers {
-    log.Printf("Signer %d (weight: %v): %v", i, s.PublicKey, s.Weight)
-}
+// Watch for transactions from address.
+watcher, err := ms.WatchTransactions("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A",
+  Opts().WithCursor("now"))
 ```
 
 ## Documentation
