@@ -76,3 +76,37 @@ func ExampleMicroStellar_WatchTransactions() {
 	fmt.Printf("%d transactions received", received)
 	// Output: 5 transactions received
 }
+
+func ExampleMicroStellar_WatchLedgers() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Get notified on new ledger entries in Stellar.
+	watcher, err := ms.WatchLedgers(Opts().WithCursor("now"))
+
+	if err != nil {
+		log.Fatalf("Can't watch ledger: %+v", err)
+	}
+
+	// Count the number of entries seen.
+	entries := 0
+
+	go func() {
+		for l := range watcher.Ch {
+			entries++
+			log.Printf("WatchLedgers %d: %v -- %v\n", entries, l.ID, l.TotalCoins)
+		}
+
+		log.Printf("## WatchLedgers ## Done -- Error: %v\n", *watcher.Err)
+	}()
+
+	// Stream the ledger for about a second then stop the watcher.
+	time.Sleep(1 * time.Second)
+	watcher.Done()
+
+	// Sleep a bit to wait for the done message from the goroutine.
+	time.Sleep(500 * time.Millisecond)
+	fmt.Printf("%d entries seen", entries)
+	// Output: 5 entries seen
+}

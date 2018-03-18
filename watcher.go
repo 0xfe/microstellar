@@ -9,6 +9,62 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
+// Ledger represents an entry in the ledger. You can subscribe a continuous stream of ledger
+// updates on the Stellar network via the WatchLedgers call.
+type Ledger horizon.Ledger
+
+// LedgerWatcher is returned by WatchLedgers, which watches the stellar network for ledger updates.
+type LedgerWatcher struct {
+	// Ch gets a *Ledger everytime there's a new entry.
+	Ch chan *Ledger
+
+	// TODO: another channel for structured Payment info
+
+	// Call Done to stop watching the ledger. This closes Ch.
+	Done func()
+
+	// This is set if the stream terminates unexpectedly. Safe to check
+	// after Ch is closed.
+	Err *error
+}
+
+// WatchLedgers watches the the stellar network for entries and streams them to LedgerWatcher.Ch. Use
+// Options.WithContext to set a context.Context, and Options.WithCursor to set a cursor.
+func (ms *MicroStellar) WatchLedgers(options ...*Options) (*LedgerWatcher, error) {
+	var streamError error
+	w := &LedgerWatcher{
+		Ch:   make(chan *Ledger),
+		Err:  &streamError,
+		Done: func() {},
+	}
+
+	watcherFunc := func(params streamParams) {
+		if params.tx.fake {
+			w.Ch <- &Ledger{ID: "fake", TotalCoins: "0"}
+			return
+		}
+
+		err := params.tx.GetClient().StreamLedgers(params.ctx, params.cursor, func(ledger horizon.Ledger) {
+			debugf("WatchLedger", "entry (%s) total_coins: %s, tx_count: %v, op_count: %v", ledger.ID, ledger.TotalCoins, ledger.TransactionCount, ledger.OperationCount)
+			l := Ledger(ledger)
+			w.Ch <- &l
+		})
+
+		if err != nil {
+			debugf("WatchLedger", "stream unexpectedly disconnected", err)
+			*w.Err = errors.Wrapf(err, "stream disconnected")
+			w.Done()
+		}
+
+		close(w.Ch)
+	}
+
+	cancelFunc, err := ms.watch("ledger", "", watcherFunc, options...)
+	w.Done = cancelFunc
+
+	return w, err
+}
+
 // Transaction represents a finalized transaction in the ledger. You can subscribe to transactions
 // on the stellar network via the WatchTransactions call.
 type Transaction horizon.Transaction
@@ -56,6 +112,8 @@ func (ms *MicroStellar) WatchTransactions(address string, options ...*Options) (
 			*w.Err = errors.Wrapf(err, "stream disconnected")
 			w.Done()
 		}
+
+		close(w.Ch)
 	}
 
 	cancelFunc, err := ms.watch("transaction", address, watcherFunc, options...)
