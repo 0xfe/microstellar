@@ -197,25 +197,26 @@ err := ms.Submit()
 #### Streaming
 
 ```go
-// Watch for payments to and from address.
-watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A")
+// Watch for payments to and from address starting from now.
+watcher, err := ms.WatchPayments("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A"),
+  Opts().WithCursor("now"))
 
 go func() {
   for p := range watcher.Ch {
-    log.Printf("WatchPayments: %v -- %v %v from %v to %v\n",
-      p.Type, p.Amount, p.AssetCode, p.From, p.To)
+    log.Printf("Saw payment: %+v", p)
   }
-  log.Printf("WatchPayments Done -- Error: %v\n", *watcher.StreamError)
 }()
 
 // Stream the ledger for about a second then stop the watcher.
 time.Sleep(1 * time.Second)
 watcher.Done()
 
-
 // Watch for transactions from address.
 watcher, err := ms.WatchTransactions("GCCRUJJGPYWKQWM5NLAXUCSBCJKO37VVJ74LIZ5AQUKT6KPVCPNAGC4A",
   Opts().WithCursor("now"))
+
+// Get the firehose of ledger updates.
+watcher, err := ms.WatchLedgers(Opts().WithCursor("now"))
 ```
 
 ## Documentation
