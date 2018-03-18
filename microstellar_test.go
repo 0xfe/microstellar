@@ -452,6 +452,54 @@ func ExampleMicroStellar_SetFlags() {
 	// Output: ok
 }
 
+// This example sets some data values on an account
+func ExampleMicroStellar_SetData() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Set some string data
+	err := ms.SetData("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
+		"foo", []byte("this is a string"))
+
+	if err != nil {
+		log.Fatalf("SetData: %v", err)
+	}
+
+	// Set some byte data
+	err = ms.SetData("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK",
+		"bytes", []byte{0xFF, 0xFF})
+
+	if err != nil {
+		log.Fatalf("SetData: %v", err)
+	}
+
+	// Read the data values that were just set
+	account, err := ms.LoadAccount("GAKMTB3D6AOE5HZ3QK726TZG6A22NGN7B46B2UALVYCLLHLOBMUBXZBJ")
+
+	if err != nil {
+		log.Fatalf("LoadAccount: %v", err)
+	}
+
+	if v, ok := account.GetData("foo"); ok {
+		fmt.Printf("foo = %s", string(v))
+	}
+
+	if v, ok := account.GetData("bytes"); ok {
+		fmt.Printf("bytes = %v", v)
+	}
+
+	// Clear data
+	err = ms.ClearData("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", "bytes")
+
+	if err != nil {
+		log.Fatalf("ClearData: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
 // This example demonstrates multi-op transactions.
 func ExampleMicroStellar_Start() {
 	// Create a new MicroStellar client connected to a fake network. To

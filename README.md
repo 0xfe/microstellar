@@ -186,12 +186,20 @@ ms.Start(bob.Address,
   microstellar.Opts().WithMemoText("multi-op").WithSigner(mary.Seed))
 
 ms.SetHomeDomain(bob.Address, "qubit.sh")
+ms.SetData(bob.Address, "foo", []byte("bar"))
 ms.SetFlags(bob.Address, microstellar.FlagAuthRequired)
 ms.PayNative(bob.Address, mary.Address, "1")
 ms.PayNative(mary.Address, bob.Address, "0.5")
 
 // Sign and submit the transaction.
-err := ms.Submit()
+ms.Submit()
+
+// Load account to see if it worked.
+account, _ := ms.LoadAccount(bob.Address)
+foo, ok := account.GetData("foo")
+if ok {
+  fmt.Printf("Bob's data for foo: %s", string(foo))
+}
 ```
 
 #### Streaming

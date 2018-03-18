@@ -1,6 +1,8 @@
 package microstellar
 
 import (
+	"encoding/base64"
+
 	"github.com/stellar/go/clients/horizon"
 )
 
@@ -151,4 +153,19 @@ func (account *Account) GetMasterWeight() int32 {
 	}
 
 	return -1
+}
+
+// GetData decodes and returns the base-64 encoded data in "key"
+func (account *Account) GetData(key string) ([]byte, bool) {
+	v, ok := account.Data[key]
+
+	if ok {
+		decodedVal, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return nil, false
+		}
+		return decodedVal, true
+	}
+
+	return nil, false
 }

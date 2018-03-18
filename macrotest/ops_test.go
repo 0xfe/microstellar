@@ -1,7 +1,6 @@
 package macrotest
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -42,8 +41,8 @@ func TestMicroStellarOps(t *testing.T) {
 	accountJSON, _ := json.MarshalIndent(*account, "", "  ")
 	log.Print(string(accountJSON))
 
-	foo, _ := base64.StdEncoding.DecodeString(account.Data["foo"])
-	fuzz, _ := base64.StdEncoding.DecodeString(account.Data["fuzz"])
+	foo, _ := account.GetData("foo")
+	fuzz, _ := account.GetData("fuzz")
 	log.Print(fmt.Sprintf("Got data: foo: %v, fuzz: %v", string(foo), fuzz))
 
 	if string(foo) != "bar" {
