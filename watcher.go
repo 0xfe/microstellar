@@ -9,17 +9,8 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
-// Ledger represents an entry in the ledger. You can subscribe a continuous stream of ledger
-// updates on the Stellar network via the WatchLedgers call.
-type Ledger horizon.Ledger
-
-// LedgerWatcher is returned by WatchLedgers, which watches the stellar network for ledger updates.
-type LedgerWatcher struct {
-	// Ch gets a *Ledger everytime there's a new entry.
-	Ch chan *Ledger
-
-	// TODO: another channel for structured Payment info
-
+// Watcher is an abstract watcher struct.
+type Watcher struct {
 	// Call Done to stop watching the ledger. This closes Ch.
 	Done func()
 
@@ -28,14 +19,25 @@ type LedgerWatcher struct {
 	Err *error
 }
 
+// Ledger represents an entry in the ledger. You can subscribe a continuous stream of ledger
+// updates on the Stellar network via the WatchLedgers call.
+type Ledger horizon.Ledger
+
+// LedgerWatcher is returned by WatchLedgers, which watches the stellar network for ledger updates.
+type LedgerWatcher struct {
+	Watcher
+
+	// Ch gets a *Ledger everytime there's a new entry.
+	Ch chan *Ledger
+}
+
 // WatchLedgers watches the the stellar network for entries and streams them to LedgerWatcher.Ch. Use
 // Options.WithContext to set a context.Context, and Options.WithCursor to set a cursor.
 func (ms *MicroStellar) WatchLedgers(options ...*Options) (*LedgerWatcher, error) {
 	var streamError error
 	w := &LedgerWatcher{
-		Ch:   make(chan *Ledger),
-		Err:  &streamError,
-		Done: func() {},
+		Ch:      make(chan *Ledger),
+		Watcher: Watcher{Err: &streamError, Done: func() {}},
 	}
 
 	watcherFunc := func(params streamParams) {
@@ -72,17 +74,10 @@ type Transaction horizon.Transaction
 // TransactionWatcher is returned by WatchTransactions, which watches the ledger for transactions
 // to and from an address.
 type TransactionWatcher struct {
+	Watcher
+
 	// Ch gets a *Transaction everytime there's a new entry in the ledger.
 	Ch chan *Transaction
-
-	// TODO: another channel for structured Payment info
-
-	// Call Done to stop watching the ledger. This closes Ch.
-	Done func()
-
-	// This is set if the stream terminates unexpectedly. Safe to check
-	// after Ch is closed.
-	Err *error
 }
 
 // WatchTransactions watches the ledger for transactions to and from address and streams them on a channel . Use
@@ -90,9 +85,8 @@ type TransactionWatcher struct {
 func (ms *MicroStellar) WatchTransactions(address string, options ...*Options) (*TransactionWatcher, error) {
 	var streamError error
 	w := &TransactionWatcher{
-		Ch:   make(chan *Transaction),
-		Err:  &streamError,
-		Done: func() {},
+		Ch:      make(chan *Transaction),
+		Watcher: Watcher{Err: &streamError, Done: func() {}},
 	}
 
 	watcherFunc := func(params streamParams) {
@@ -129,17 +123,10 @@ type Payment horizon.Payment
 // PaymentWatcher is returned by WatchPayments, which watches the ledger for payments
 // to and from an address.
 type PaymentWatcher struct {
+	Watcher
+
 	// Ch gets a *Payment everytime there's a new entry in the ledger.
 	Ch chan *Payment
-
-	// TODO: another channel for structured Payment info
-
-	// Call Done to stop watching the ledger. This closes Ch.
-	Done func()
-
-	// This is set if the stream terminates unexpectedly. Safe to check
-	// after Ch is closed.
-	Err *error
 }
 
 // WatchPayments watches the ledger for payments to and from address and streams them on a channel . Use
@@ -147,9 +134,8 @@ type PaymentWatcher struct {
 func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*PaymentWatcher, error) {
 	var streamError error
 	w := &PaymentWatcher{
-		Ch:   make(chan *Payment),
-		Err:  &streamError,
-		Done: func() {},
+		Ch:      make(chan *Payment),
+		Watcher: Watcher{Err: &streamError, Done: func() {}},
 	}
 
 	watcherFunc := func(params streamParams) {
