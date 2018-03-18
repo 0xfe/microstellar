@@ -37,14 +37,17 @@ func TestMicroStellarPayments(t *testing.T) {
 	log.Print("Pair4 (signer1): ", keyPair4)
 	log.Print("Pair5 (signer2): ", keyPair5)
 
-	log.Print("Watching for payments on distributor's ledger...")
+	log.Print("Watching for transactions on distributor's ledger...")
 	watcher, err := ms.WatchPayments(keyPair2.Address, microstellar.Opts().WithContext(context.Background()))
+	tWatcher, err := ms.WatchTransactions(keyPair2.Address, microstellar.Opts().WithContext(context.Background()))
 
 	if err != nil {
 		log.Fatalf("Can't watch ledger: %+v", err)
 	}
 
 	paymentsReceived := 0
+	transactionsSeen := 0
+
 	go func() {
 		for p := range watcher.Ch {
 			debugf("  ## WatchPayments ## (distributor) %v: %v%v%v from %v%v", p.Type, p.Amount, p.StartingBalance, p.AssetCode, p.From, p.Account)
@@ -52,6 +55,15 @@ func TestMicroStellarPayments(t *testing.T) {
 		}
 
 		debugf("  ## WatchPayments ## (distributor) Done -- Error: %v", *watcher.Err)
+	}()
+
+	go func() {
+		for t := range tWatcher.Ch {
+			debugf("  ## WatchTransactions ## (distributor) %v: (ops: %v) (memo: %v) (fee: %d)", t.ID, t.OperationCount, t.Memo, t.FeePaid)
+			transactionsSeen++
+		}
+
+		debugf("  ## WatchTransactions ## (distributor) Done -- Error: %v", *tWatcher.Err)
 	}()
 
 	debugf("Creating new USD asset issued by %s (issuer)...", keyPair1.Address)
@@ -138,9 +150,9 @@ func TestMicroStellarPayments(t *testing.T) {
 		log.Fatalf("Payment failed: %v", microstellar.ErrorString(err))
 	}
 
-	// Kill payment watcher
-	log.Print("Killing payment watcher...")
+	log.Print("Killing watchers...")
 	watcher.Done()
+	tWatcher.Done()
 
 	log.Print("Sending back USD from customer to distributor before removing trustline...")
 	err = ms.Pay(keyPair3.Seed, keyPair2.Address, "10000", USD,
@@ -164,6 +176,7 @@ func TestMicroStellarPayments(t *testing.T) {
 	showBalance(ms, USD, "signer2", keyPair5.Address)
 
 	debugf("Total payments on distributor's ledger: %d", paymentsReceived)
+	debugf("Total transactions on distributor's ledger: %d", transactionsSeen)
 }
 
 func TestMicroStellarMultiOp(t *testing.T) {

@@ -112,6 +112,8 @@ func (ms *MicroStellar) WatchPayments(address string, options ...*Options) (*Pay
 			*w.Err = errors.Wrapf(err, "stream disconnected")
 			w.Done()
 		}
+
+		close(w.Ch)
 	}
 
 	cancelFunc, err := ms.watch("payment", address, watcherFunc, options...)
