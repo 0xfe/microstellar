@@ -513,3 +513,52 @@ func (ms *MicroStellar) SetThresholds(sourceSeed string, low, medium, high uint3
 	tx.Build(sourceAccount(sourceSeed), build.SetThresholds(low, medium, high))
 	return ms.signAndSubmit(tx, sourceSeed)
 }
+
+// SetData lets you attach (or update) arbitrary data to an account. The lengths of the key and value must each be
+// less than 64 bytes.
+func (ms *MicroStellar) SetData(sourceSeed string, key string, val []byte, options ...*Options) error {
+	if !ValidAddressOrSeed(sourceSeed) {
+		return errors.Errorf("can't set thresholds: invalid source address or seed: %s", sourceSeed)
+	}
+
+	tx := ms.getTx()
+
+	if len(options) > 0 {
+		tx.SetOptions(options[0])
+	}
+
+	if key == "" {
+		return errors.Errorf("data key must not be empty")
+	}
+
+	if len(key) > 64 {
+		return errors.Errorf("data key must be under 64 bytes: %s", key)
+	}
+
+	if len(val) > 64 {
+		return errors.Errorf("data value must be under 64 bytes: %s", string(val))
+	}
+
+	tx.Build(sourceAccount(sourceSeed), build.SetData(key, val))
+	return ms.signAndSubmit(tx, sourceSeed)
+}
+
+// ClearData removes attached data from an account.
+func (ms *MicroStellar) ClearData(sourceSeed string, key string, options ...*Options) error {
+	if !ValidAddressOrSeed(sourceSeed) {
+		return errors.Errorf("can't set thresholds: invalid source address or seed: %s", sourceSeed)
+	}
+
+	tx := ms.getTx()
+
+	if len(options) > 0 {
+		tx.SetOptions(options[0])
+	}
+
+	if len(key) > 64 {
+		return errors.Errorf("data key must be under 64 bytes: %s", key)
+	}
+
+	tx.Build(sourceAccount(sourceSeed), build.ClearData(key))
+	return ms.signAndSubmit(tx, sourceSeed)
+}
