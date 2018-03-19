@@ -588,6 +588,10 @@ func (ms *MicroStellar) SignTransaction(b64Tx string, seeds ...string) (string, 
 	tx := ms.getTx()
 	xdrTxe, err := DecodeTx(b64Tx)
 
+	if err != nil {
+		return "", errors.Wrap(err, "failed to decode base64 transaction")
+	}
+
 	hash, err := network.HashTransaction(&xdrTxe.Tx, tx.network.Passphrase)
 	if err != nil {
 		return "", errors.Wrap(err, "hash failed")
