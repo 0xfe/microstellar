@@ -42,6 +42,8 @@ import (
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/clients/stellartoml"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/xdr"
 )
 
 // MicroStellar is the user handle to the Stellar network. Use the New function
@@ -580,7 +582,44 @@ func (ms *MicroStellar) ClearData(sourceSeed string, key string, options ...*Opt
 	return ms.signAndSubmit(tx, sourceSeed)
 }
 
+// SignTransaction signs a base64-encoded transaction envelope with the specified seeds
+// for the current network.
+func (ms *MicroStellar) SignTransaction(b64Tx string, seeds ...string) (string, error) {
+	tx := ms.getTx()
+	xdrTxe, err := DecodeTx(b64Tx)
+
+	hash, err := network.HashTransaction(&xdrTxe.Tx, tx.network.Passphrase)
+	if err != nil {
+		return "", errors.Wrap(err, "hash failed")
+	}
+
+	for _, seed := range seeds {
+		kp, err := keypair.Parse(seed)
+		if err != nil {
+			return "", errors.Wrap(err, "parse failed")
+		}
+
+		sig, err := kp.SignDecorated(hash[:])
+		if err != nil {
+			return "", errors.Wrap(err, "sign failed")
+		}
+
+		xdrTxe.Signatures = append(xdrTxe.Signatures, sig)
+	}
+
+	signedTx, err := xdr.MarshalBase64(xdrTxe)
+
+	if err != nil {
+		return "", errors.Wrap(err, "could not marshal transaction")
+	}
+
+	return signedTx, nil
+}
+
 // SubmitTransaction submits a base64-encoded transaction envelope to the Stellar network
-func (ms *MicroStellar) SubmitTransaction(txe string) error {
-	return nil
+func (ms *MicroStellar) SubmitTransaction(b64Tx string) (*TxResponse, error) {
+	tx := ms.getTx()
+	resp, err := tx.GetClient().SubmitTransaction(b64Tx)
+	txResponse := TxResponse(resp)
+	return &txResponse, err
 }
