@@ -589,10 +589,12 @@ func (ms *MicroStellar) SignTransaction(b64Tx string, seeds ...string) (string, 
 	xdrTxe, err := DecodeTx(b64Tx)
 
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode base64 transaction")
+		return "", errors.Wrap(err, "DecodeTx")
 	}
 
+	debugf("SignTransaction", "decoded transaction: %+v", xdrTxe)
 	hash, err := network.HashTransaction(&xdrTxe.Tx, tx.network.Passphrase)
+
 	if err != nil {
 		return "", errors.Wrap(err, "hash failed")
 	}
@@ -608,11 +610,11 @@ func (ms *MicroStellar) SignTransaction(b64Tx string, seeds ...string) (string, 
 			return "", errors.Wrap(err, "sign failed")
 		}
 
+		debugf("SignTransaction", "adding signature: %+v", sig)
 		xdrTxe.Signatures = append(xdrTxe.Signatures, sig)
 	}
 
 	signedTx, err := xdr.MarshalBase64(xdrTxe)
-
 	if err != nil {
 		return "", errors.Wrap(err, "could not marshal transaction")
 	}

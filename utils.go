@@ -100,6 +100,10 @@ func FundWithFriendBot(address string) (string, error) {
 func DecodeTx(base64tx string) (*xdr.TransactionEnvelope, error) {
 	var tx xdr.TransactionEnvelope
 
+	if base64tx[len(base64tx)-1] != '=' {
+		base64tx = base64tx + "=="
+	}
+
 	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(base64tx))
 	_, err := xdr.Unmarshal(reader, &tx)
 

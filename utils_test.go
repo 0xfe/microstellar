@@ -1,6 +1,9 @@
 package microstellar
 
-import "testing"
+import (
+	"log"
+	"testing"
+)
 
 func TestValidAddress(t *testing.T) {
 	if err := ValidAddress("GAB6FX3WVKZZRUE64H77BRWLDIOIOR4MU27L3ATNVUYKXPX5GF22TOZO"); err != nil {
@@ -41,5 +44,21 @@ func TestValidAddressOrSeed(t *testing.T) {
 
 	if !ValidAddressOrSeed("SA6UC3LRJVNZ6DO3ZIBWUXHG6O7LKWWFTTAG2HK6QHSXZROMCVDU73RH") {
 		t.Error("this is a valid seed")
+	}
+}
+
+func TestDecodeTx(t *testing.T) {
+	tx := "AAAAAJb3jlBt5y04F3kXk47T9MO/Se7NcfhnIxXvWjOCzZ14AAAAZAB50HAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAuIMOnlpDFWhoO8o6VVzH4MZdIpgqr21GMRGG2riMxNoAAAAAAAAAAACYloAAAAAAAAAAAA"
+
+	txe, err := DecodeTx(tx)
+	if err != nil {
+		t.Errorf("got error: %v", err)
+	}
+
+	log.Printf("txe: %+v", txe)
+
+	txe, err = DecodeTx(tx + "==")
+	if err != nil {
+		t.Errorf("got error: %v", err)
 	}
 }
