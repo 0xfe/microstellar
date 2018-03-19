@@ -276,7 +276,7 @@ func (tx *Tx) Submit() error {
 		// Call the presubmit handler, if set.
 		handler, ok := tx.options.handlers[EvBeforeSubmit]
 		if ok {
-			debugf("Tx.Submit", "calling presubmit handler", tx.networkName)
+			debugf("Tx.Submit", "calling presubmit handler")
 			f := (func(...interface{}) (bool, error))(*handler)
 			cont, err := f(tx.payload)
 			if tx.err != nil {
