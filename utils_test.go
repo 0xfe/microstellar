@@ -57,8 +57,10 @@ func TestDecodeTx(t *testing.T) {
 
 	log.Printf("txe: %+v", txe)
 
-	txe, err = DecodeTx(tx + "==")
+	txeJSON, err := DecodeTxToJSON(tx+"==", false)
 	if err != nil {
 		t.Errorf("got error: %v", err)
 	}
+
+	log.Printf("txeJSON: %+v", txeJSON)
 }
