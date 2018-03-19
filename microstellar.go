@@ -51,7 +51,7 @@ type MicroStellar struct {
 	params      Params
 	fake        bool
 	tx          *Tx
-	isMultiOp   bool
+	lastTx      *Tx
 }
 
 // Error wraps underlying errors (e.g., horizon)
@@ -73,7 +73,7 @@ type Params map[string]interface{}
 // If you're using "custom", provide the URL and Passphrase to your
 // horizon network server in the parameters.
 //
-//    NewTx("custom", Params{
+//    New("custom", Params{
 //        "url": "https://my-horizon-server.com",
 //        "passphrase": "foobar"})
 func New(networkName string, params ...Params) *MicroStellar {
@@ -88,24 +88,31 @@ func New(networkName string, params ...Params) *MicroStellar {
 		params:      p,
 		fake:        networkName == "fake",
 		tx:          nil,
-		isMultiOp:   false,
 	}
 }
 
 func (ms *MicroStellar) getTx() *Tx {
-	if ms.isMultiOp && ms.tx != nil {
-		return ms.tx
+	var tx *Tx
+
+	// If this is a multi-op transaction, then tx
+	// contains the
+	if ms.tx != nil {
+		tx = ms.tx
 	} else {
-		return NewTx(ms.networkName, ms.params)
+		tx = NewTx(ms.networkName, ms.params)
 	}
+
+	return tx
 }
 
 func (ms *MicroStellar) signAndSubmit(tx *Tx, signers ...string) error {
-	if !ms.isMultiOp {
+	if !tx.isMultiOp {
 		tx.Sign(signers...)
 		tx.Submit()
 	}
 
+	// Save last tx to keep response and error
+	ms.lastTx = tx
 	return tx.Err()
 }
 
@@ -131,26 +138,36 @@ func (ms *MicroStellar) signAndSubmit(tx *Tx, signers ...string) error {
 //   ms.Submit()
 //
 func (ms *MicroStellar) Start(sourceSeed string, options ...*Options) *MicroStellar {
-	ms.tx = NewTx(ms.networkName, ms.params).Start(sourceSeed)
-	ms.tx.SetOptions(mergeOptions(options))
-	ms.isMultiOp = true
+	ms.tx = NewTx(ms.networkName, ms.params).WithOptions(mergeOptions(options).MultiOp(sourceSeed))
 	return ms
 }
 
 // Submit signs and submits a multi-op transaction to the network. See microstellar.Start() for
 // details.
 func (ms *MicroStellar) Submit() error {
-	if !ms.isMultiOp {
+	tx := ms.getTx()
+
+	if !tx.isMultiOp {
 		return errors.Errorf("can't submit, not a multi-op transaction")
 	}
 
 	ms.tx.Sign()
 	ms.tx.Submit()
 
-	err := ms.tx.Err()
-	ms.isMultiOp = false
-	ms.tx = nil
-	return err
+	// Save last tx to keep response and error
+	ms.lastTx = tx
+	tx = nil
+	return ms.lastTx.Err()
+}
+
+// TxError returns the error from the last submission attempt.
+func (ms *MicroStellar) TxError() error {
+	return ms.lastTx.Err()
+}
+
+// TxResponse returns the response from the last submission.
+func (ms *MicroStellar) TxResponse() *TxResponse {
+	return ms.lastTx.Response()
 }
 
 // CreateKeyPair generates a new random key pair.
@@ -561,4 +578,9 @@ func (ms *MicroStellar) ClearData(sourceSeed string, key string, options ...*Opt
 
 	tx.Build(sourceAccount(sourceSeed), build.ClearData(key))
 	return ms.signAndSubmit(tx, sourceSeed)
+}
+
+// SubmitTransaction submits a base64-encoded transaction envelope to the Stellar network
+func (ms *MicroStellar) SubmitTransaction(txe string) error {
+	return nil
 }

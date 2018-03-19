@@ -79,6 +79,11 @@ ms.Pay(
   "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM", // to
   "3", microstellar.Opts().WithMemoText("thanks for the fish"))
 
+// Find out where the transaction was submitted.
+if ms.TxErr() == nil {
+  fmt.Printf("Transaction submitted to ledger: %d", ms.TxResponse().Ledger)
+}
+
 // Now load the account details from the ledger.
 account, _ := ms.LoadAccount(pair.Address)
 

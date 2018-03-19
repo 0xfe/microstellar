@@ -31,6 +31,8 @@ func TestMicroStellarOps(t *testing.T) {
 		t.Errorf("Error submitting transaction: %v", microstellar.ErrorString(err))
 	}
 
+	log.Printf("Transaction submitted to ledger %d.", ms.TxResponse().Ledger)
+
 	log.Print("Reading bob's data...")
 	account, err := ms.LoadAccount(bob.Address)
 
