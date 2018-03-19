@@ -103,6 +103,18 @@ func TestTx(t *testing.T) {
 
 	if tx.Err() != nil {
 		t.Errorf("tx.Err() should be nil: got %v", tx.Err())
-
 	}
+
+	// Test the EvBeforeSubmit handler.
+	tx.Reset()
+	handler := func(args ...interface{}) (bool, error) {
+		log.Printf("Presubmit: %v", args[0])
+		return true, nil
+	}
+
+	txHandler := TxHandler(handler)
+	tx.SetOptions(Opts().On(EvBeforeSubmit, &txHandler))
+	tx.Build(sourceAccount(keyPair.Seed))
+	tx.Sign()
+	tx.Submit()
 }
