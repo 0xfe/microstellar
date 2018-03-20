@@ -117,4 +117,10 @@ func TestTx(t *testing.T) {
 	tx.Build(sourceAccount(keyPair.Seed))
 	tx.Sign()
 	tx.Submit()
+
+	// Test SkipSignatures
+	tx.Reset()
+	tx.SetOptions(Opts().SkipSignatures())
+	tx.Sign()
+	tx.Submit()
 }
