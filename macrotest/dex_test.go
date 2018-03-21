@@ -260,5 +260,65 @@ func TestMicroStellarPathPayments(t *testing.T) {
 	debugf("After automatic path payment...")
 	showBalance(ms, INR, "bob", bob.Address)
 	showBalance(ms, INR, "mary", mary.Address)
+}
 
+// TestMicroStellarOffers implement end-to-end DEX tests
+func TestMicroStellarOrderBook(t *testing.T) {
+	const fundSourceSeed = "SBW2N5EK5MZTKPQJZ6UYXEMCA63AO3AVUR6U5CUOIDFYCAR2X2IJIZAX"
+
+	ms := microstellar.New("test")
+
+	// Create a key pair
+	issuer := createFundedAccount(ms, fundSourceSeed, true)
+	bob := createFundedAccount(ms, issuer.Seed, false)
+
+	log.Print("Pair1 (issuer): ", issuer)
+	log.Print("Pair2 (bob): ", bob)
+
+	debugf("Creating new USD asset issued by %s (issuer)...", issuer.Address)
+	USD := microstellar.NewAsset("USD", issuer.Address, microstellar.Credit4Type)
+
+	debugf("Creating USD trustline for %s (bob)...", bob.Address)
+	err := ms.CreateTrustLine(bob.Seed, USD, "1000000")
+
+	if err != nil {
+		log.Fatalf("CreateTrustLine: %+v", err)
+	}
+
+	log.Print("Issuing USD to bob...")
+	err = ms.Pay(issuer.Seed, bob.Address, "500000", USD)
+
+	if err != nil {
+		log.Fatalf("Pay: %+v", microstellar.ErrorString(err))
+	}
+
+	log.Print("Creating offer for Bob to sell 100 USD...")
+	err = ms.CreateOffer(bob.Seed, USD, microstellar.NativeAsset, "2", "50")
+	if err != nil {
+		log.Fatalf("CreateOffer: %+v", microstellar.ErrorString(err))
+	}
+
+	orderBook, err := ms.LoadOrderBook(USD, microstellar.NativeAsset)
+	if err != nil {
+		log.Fatalf("LoadOrderBook: %+v", err)
+	}
+
+	orderBookJSON, _ := json.MarshalIndent(*orderBook, "", "  ")
+	log.Printf("%v", string(orderBookJSON))
+
+	if len(orderBook.Asks) != 1 {
+		t.Errorf("Expecting 1 ask, got %v", len(orderBook.Asks))
+	}
+
+	orderBook, err = ms.LoadOrderBook(USD, microstellar.NativeAsset, microstellar.Opts().WithLimit(0))
+	if err != nil {
+		log.Fatalf("LoadOrderBook: %+v", err)
+	}
+
+	orderBookJSON, _ = json.MarshalIndent(*orderBook, "", "  ")
+	log.Printf("%v", string(orderBookJSON))
+
+	if len(orderBook.Asks) != 0 {
+		t.Errorf("Expecting 0 asks, got %v", len(orderBook.Asks))
+	}
 }
