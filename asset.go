@@ -33,6 +33,9 @@ var NativeAsset = &Asset{"XLM", "", NativeType}
 //
 //   USD := microstellar.NewAsset("USD", "issuer_address", microstellar.Credit4Type)
 func NewAsset(code string, issuer string, assetType AssetType) *Asset {
+	if assetType == NativeType {
+		code = "xlm"
+	}
 	return &Asset{code, issuer, assetType}
 }
 
