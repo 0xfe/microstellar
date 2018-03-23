@@ -118,3 +118,29 @@ func ExampleMicroStellar_LoadOffers() {
 	fmt.Printf("ok")
 	// Output: ok
 }
+
+// This example lists all asks on the DEX between USD <-> XLM
+func ExampleMicroStellar_LoadOrderBook() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Get at most 10 orders made between USD and XLM
+	orderbook, err := ms.LoadOrderBook(USD, NativeAsset,
+		Opts().WithLimit(10).WithSortOrder(SortDescending))
+
+	if err != nil {
+		log.Fatalf("LoadOrderBook: %v", err)
+	}
+
+	// List all the returned asks.
+	for _, ask := range orderbook.Asks {
+		log.Printf("ask: %s %s for %s %s/%s", ask.Amount, orderbook.Base.Code, ask.Price, orderbook.Counter.Code, orderbook.Base.Code)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}

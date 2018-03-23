@@ -6,7 +6,8 @@ import (
 )
 
 func Example() {
-	// Create a new MicroStellar client connected to a mock network.
+	// Create a new MicroStellar client connected to a mock network. The client is not
+	// thread-safe, however you can create as many instances as you need.
 	ms := New("fake")
 
 	// Generate a new random keypair.
