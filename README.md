@@ -73,7 +73,7 @@ err := ms.Pay(kelly.Seed, bob.Address, "3",
 
 // Find out where the transaction was submitted.
 if err == nil {
-  fmt.Printf("Transaction submitted to ledger: %d", ms.TxResponse().Ledger)
+  fmt.Printf("Transaction submitted to ledger: %d", ms.Response().Ledger)
 }
 
 // Get kelly's balance.
