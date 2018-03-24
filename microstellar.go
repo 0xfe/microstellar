@@ -180,13 +180,8 @@ func (ms *MicroStellar) Err() error {
 	return ms.lastErr
 }
 
-// TxError returns the error from the last submission attempt.
-func (ms *MicroStellar) TxError() error {
-	return ms.lastTx.Err()
-}
-
-// TxResponse returns the response from the last submission.
-func (ms *MicroStellar) TxResponse() *TxResponse {
+// Response returns the response from the last submission.
+func (ms *MicroStellar) Response() *TxResponse {
 	return ms.lastTx.Response()
 }
 
