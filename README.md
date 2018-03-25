@@ -189,6 +189,21 @@ if ok {
 fmt.Printf("Bob's home domain: %s", account.GetHomeDomain())
 ```
 
+#### Time-bound transactions for smart contracts
+```go
+// Create a transaction valid between 1 and 8 hours from now.
+ms.Start(bob.Address,
+  microstellar.Opts().WithTimeBounds(time.Now().After(1*time.Hour), time.Now().After(8.time.Hour)))
+ms.Pay(bob.Address, pizzaHut.Address, USD, "500")
+
+// Get the transaction to submit later.
+payload := ms.Payload()
+
+// A few hours later...
+signedPayload, _ := ms.SignTransaction(payload, bob.Seed)
+ms.SubmitTransaction(signedPayload)
+```
+
 #### Streaming
 
 ```go

@@ -225,8 +225,23 @@ func (ms *MicroStellar) Submit() error {
 
 	// Save last tx to keep response and error
 	ms.lastTx = tx
-	tx = nil
+	ms.tx = nil
 	return ms.err(ms.lastTx.Err())
+}
+
+// Payload returns the payload for the current transaction without submitting it to the network. This
+// only works for transactions started with Start()
+func (ms *MicroStellar) Payload() (string, error) {
+	tx := ms.getTx()
+
+	if !tx.isMultiOp {
+		return "", ms.errorf("can't generate payload, Start() not called")
+	}
+
+	payload, err := tx.Payload()
+	ms.lastTx = tx
+	ms.tx = nil
+	return payload, ms.err(err)
 }
 
 // CreateKeyPair generates a new random key pair.

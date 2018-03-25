@@ -281,13 +281,34 @@ func ExampleMicroStellar_Pay_timebounds() {
 	// Custom USD asset issued by specified issuer
 	USD := NewAsset("USD", "GALC5V4UUUICHENN3ZZLQY6UWAC67CMKVXYT4MT7YGQRD6RMXXCAMHP6", Credit4Type)
 
-	// Pay 1 USD to targetAddress, only valid between 1 and 24 hours from now.
-	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD,
+	// Start a new timebound transaction, valid between 1 and 24 hours from now
+	ms.Start("GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E",
 		Opts().WithTimeBounds(time.Now().Add(1*time.Hour), time.Now().Add(24*time.Hour)))
 
+	// Pay 1 USD to targetAddress, only valid between 1 and 24 hours from now.
+	ms.Pay("GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ",
+		"GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD)
+
+	// Get the transaction to submit later.
+	payload, err := ms.Payload()
 	if err != nil {
-		log.Fatalf("Pay (timebounds): %v", ErrorString(err))
+		log.Fatalf("Could not generate payload: %v", err)
 	}
+
+	/*
+		// A few hours later, sign and submit transaction...
+		signedPayload, err := ms.SignTransaction(payload, "SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC")
+		if err != nil {
+			log.Fatalf("Could not sign transaction: %v", err)
+		}
+
+		_, err = ms.SubmitTransaction(signedPayload)
+		if err != nil {
+			log.Fatalf("Pay (timebounds): %v", ErrorString(err))
+		}
+	*/
+
+	_ = payload
 
 	fmt.Printf("ok")
 	// Output: ok
