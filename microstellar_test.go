@@ -3,6 +3,7 @@ package microstellar
 import (
 	"fmt"
 	"log"
+	"time"
 )
 
 func Example() {
@@ -235,6 +236,57 @@ func ExampleMicroStellar_Pay_memotext() {
 
 	if err != nil {
 		log.Fatalf("Pay (memoid): %v", ErrorString(err))
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// Payments with memohash and memoreturn
+func ExampleMicroStellar_Pay_memohash() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GALC5V4UUUICHENN3ZZLQY6UWAC67CMKVXYT4MT7YGQRD6RMXXCAMHP6", Credit4Type)
+
+	// Pay 1 USD to targetAddress and set the memohash field
+	var hash [32]byte
+	copy(hash[:], "boo"[:])
+	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD,
+		Opts().WithMemoHash(hash))
+
+	if err != nil {
+		log.Fatalf("Pay (memohash): %v", ErrorString(err))
+	}
+
+	// Pay 1 USD to targetAddress and set the memoreturn field
+	err = ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD, Opts().WithMemoReturn(hash))
+
+	if err != nil {
+		log.Fatalf("Pay (memoreturn): %v", ErrorString(err))
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// Payments with time bounds
+func ExampleMicroStellar_Pay_timebounds() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer
+	USD := NewAsset("USD", "GALC5V4UUUICHENN3ZZLQY6UWAC67CMKVXYT4MT7YGQRD6RMXXCAMHP6", Credit4Type)
+
+	// Pay 1 USD to targetAddress, only valid between 1 and 24 hours from now.
+	err := ms.Pay("SAED4QHN3USETFHECASIM2LRI3H4QTVKZK44D2RC27IICZPZQEGXGXFC", "GAGTJGMT55IDNTFTF2F553VQBWRBLGTWLU4YOOIFYBR2F6H6S4AEC45E", "1", USD,
+		Opts().WithTimeBounds(time.Now().Add(1*time.Hour), time.Now().Add(24*time.Hour)))
+
+	if err != nil {
+		log.Fatalf("Pay (timebounds): %v", ErrorString(err))
 	}
 
 	fmt.Printf("ok")

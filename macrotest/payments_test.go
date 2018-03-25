@@ -6,6 +6,7 @@ package macrotest
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -156,8 +157,11 @@ func TestMicroStellarMultiOp(t *testing.T) {
 	debugf("Adding mary as bob's signer...")
 	ms.AddSigner(bob.Seed, mary.Address, 1)
 
-	debugf("Starting self-signed multi-op transaction...")
-	ms.Start(bob.Seed, microstellar.Opts().WithMemoText("multi-op"))
+	debugf("Starting self-signed multi-op transaction (valid for 1hr)...")
+	ms.Start(bob.Seed,
+		microstellar.Opts().
+			WithMemoText("multi-op").
+			WithTimeBounds(time.Now().Add(-1*time.Minute), time.Now().Add(1*time.Hour)))
 	ms.SetHomeDomain(bob.Address, "qubit.sh")
 	ms.SetFlags(bob.Address, microstellar.FlagAuthRequired)
 	ms.PayNative(bob.Address, mary.Address, "1")

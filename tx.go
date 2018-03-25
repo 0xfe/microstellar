@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/xdr"
 )
 
 // Tx represents a unique stellar transaction. This is used by the MicroStellar
@@ -192,6 +193,14 @@ func (tx *Tx) Build(sourceAccount build.TransactionMutator, muts ...build.Transa
 			muts = append(muts, build.MemoText{Value: tx.options.memoText})
 		case MemoID:
 			muts = append(muts, build.MemoID{Value: tx.options.memoID})
+		case MemoHash:
+			muts = append(muts, build.MemoHash{Value: xdr.Hash(tx.options.memoHash)})
+		case MemoReturn:
+			muts = append(muts, build.MemoReturn{Value: xdr.Hash(tx.options.memoHash)})
+		}
+
+		if tx.options.hasTimeBounds {
+			muts = append(muts, build.Timebounds{MinTime: uint64(tx.options.minTimeBound.Unix()), MaxTime: uint64(tx.options.maxTimeBound.Unix())})
 		}
 	}
 
