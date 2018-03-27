@@ -278,11 +278,22 @@ func TestMicroStellarOrderBook(t *testing.T) {
 	debugf("Creating new USD asset issued by %s (issuer)...", issuer.Address)
 	USD := microstellar.NewAsset("USD", issuer.Address, microstellar.Credit4Type)
 
-	debugf("Creating USD trustline for %s (bob)...", bob.Address)
-	err := ms.CreateTrustLine(bob.Seed, USD, "1000000")
+	debugf("Setting AUTH_REQUIRED on issuer...")
+	err := ms.SetFlags(issuer.Seed, microstellar.FlagAuthRequired)
+	if err != nil {
+		log.Fatalf("SetFlags: %+v", err)
+	}
 
+	debugf("Creating USD trustline for %s (bob)...", bob.Address)
+	err = ms.CreateTrustLine(bob.Seed, USD, "1000000")
 	if err != nil {
 		log.Fatalf("CreateTrustLine: %+v", err)
+	}
+
+	debugf("Authorizing trustline to bob...")
+	err = ms.AllowTrust(issuer.Seed, bob.Address, "USD", true)
+	if err != nil {
+		log.Fatalf("AllowTrust: %v", microstellar.ErrorString(err))
 	}
 
 	log.Print("Issuing USD to bob...")

@@ -406,9 +406,40 @@ func ExampleMicroStellar_RemoveTrustLine() {
 
 	// Remove the trustline (if exists)
 	err := ms.RemoveTrustLine("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", USD)
-
 	if err != nil {
 		log.Fatalf("RemoveTrustLine: %v", err)
+	}
+
+	fmt.Printf("ok")
+	// Output: ok
+}
+
+// This example authorizes an account to create a trustline to an asset.
+func ExampleMicroStellar_AllowTrust() {
+	// Create a new MicroStellar client connected to a fake network. To
+	// use a real network replace "fake" below with "test" or "public".
+	ms := New("fake")
+
+	// Custom USD asset issued by specified issuer.
+	USD := NewAsset("USD", "GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", Credit4Type)
+
+	// Issuer sets AUTH_REQUIRED flag on account.
+	err := ms.SetFlags("SDPLQEABOETMI7PPKJZYBHHW2BSA3424CI3V5ZRNN3NP2H7KYQOKY5ST", FlagAuthRequired)
+	if err != nil {
+		log.Fatalf("SetFlags: %v", ErrorString(err))
+	}
+
+	// Customer creates a trustline to the custom asset with no limit.
+	err = ms.CreateTrustLine("SCSMBQYTXKZYY7CLVT6NPPYWVDQYDOQ6BB3QND4OIXC7762JYJYZ3RMK", USD, "")
+	if err != nil {
+		log.Fatalf("CreateTrustLine: %v", err)
+	}
+
+	// Issuer then authorizes the trustline that was just created.
+	err = ms.AllowTrust("SDPLQEABOETMI7PPKJZYBHHW2BSA3424CI3V5ZRNN3NP2H7KYQOKY5ST",
+		"GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ", "USD", true)
+	if err != nil {
+		log.Fatalf("AllowTrust: %v", err)
 	}
 
 	fmt.Printf("ok")
