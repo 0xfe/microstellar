@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/manucorporat/sse"
 	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 )
@@ -167,6 +169,94 @@ func (c *Client) LoadTradeAggregations(
 	return
 }
 
+// LoadTrades loads the /trades endpoint from horizon.
+func (c *Client) LoadTrades(
+	baseAsset Asset,
+	counterAsset Asset,
+	offerID int64,
+	resolution int64,
+	params ...interface{},
+) (tradesPage TradesPage, err error) {
+	c.fixURLOnce.Do(c.fixURL)
+	query := url.Values{}
+
+	addAssetToQuery(query, "base", baseAsset)
+	addAssetToQuery(query, "counter", counterAsset)
+
+	query.Add("offer_id", strconv.FormatInt(offerID, 10))
+	query.Add("resolution", strconv.FormatInt(resolution, 10))
+
+	for _, param := range params {
+		switch param := param.(type) {
+		case Cursor:
+			query.Add("cursor", string(param))
+		case Limit:
+			query.Add("limit", strconv.Itoa(int(param)))
+		case Order:
+			query.Add("order", string(param))
+		default:
+			err = fmt.Errorf("Undefined parameter (%T): %+v", param, param)
+			return
+		}
+	}
+
+	endpoint := fmt.Sprintf(
+		"%s/trades/?%s",
+		c.URL,
+		query.Encode(),
+	)
+
+	// ensure our endpoint is a real url
+	_, err = url.Parse(endpoint)
+	if err != nil {
+		err = errors.Wrap(err, "failed to parse endpoint")
+		return
+	}
+
+	resp, err := c.HTTP.Get(endpoint)
+	if err != nil {
+		err = errors.Wrap(err, "failed to load endpoint")
+		return
+	}
+
+	err = decodeResponse(resp, &tradesPage)
+	return
+}
+
+// LoadTransaction loads a single transaction from Horizon server
+func (c *Client) LoadTransaction(transactionID string) (transaction Transaction, err error) {
+	c.fixURLOnce.Do(c.fixURL)
+	resp, err := c.HTTP.Get(c.URL + "/transactions/" + transactionID)
+	if err != nil {
+		return
+	}
+
+	err = decodeResponse(resp, &transaction)
+	return
+}
+
+func addAssetToQuery(v map[string][]string, assetPrefix string, asset Asset) {
+	if asset.Type == "native" {
+		v[assetPrefix+"_asset_type"] = []string{asset.Type}
+	} else {
+		v[assetPrefix+"_asset_type"] = []string{asset.Type}
+		v[assetPrefix+"_asset_code"] = []string{asset.Code}
+		v[assetPrefix+"_asset_issuer"] = []string{asset.Issuer}
+	}
+}
+
+// LoadOperation loads a single operation from Horizon server
+func (c *Client) LoadOperation(operationID string) (payment Payment, err error) {
+	c.fixURLOnce.Do(c.fixURL)
+	resp, err := c.HTTP.Get(c.URL + "/operations/" + operationID)
+	if err != nil {
+		return
+	}
+
+	err = decodeResponse(resp, &payment)
+	return
+}
+
 // LoadMemo loads memo for a transaction in Payment
 func (c *Client) LoadMemo(p *Payment) (err error) {
 	res, err := c.HTTP.Get(p.Links.Transaction.Href)
@@ -175,6 +265,33 @@ func (c *Client) LoadMemo(p *Payment) (err error) {
 	}
 	defer res.Body.Close()
 	return json.NewDecoder(res.Body).Decode(&p.Memo)
+}
+
+// LoadAccountMergeAmount loads `account_merge` operation amount from it's effects
+func (c *Client) LoadAccountMergeAmount(p *Payment) error {
+	if p.Type != "account_merge" {
+		return errors.New("Not `account_merge` operation")
+	}
+
+	res, err := c.HTTP.Get(p.Links.Effects.Href)
+	if err != nil {
+		return errors.Wrap(err, "Error getting effects for operation")
+	}
+	defer res.Body.Close()
+	var page EffectsPage
+	err = decodeResponse(res, &page)
+	if err != nil {
+		return errors.Wrap(err, "Error decoding effects page")
+	}
+
+	for _, effect := range page.Embedded.Records {
+		if effect.Type == "account_credited" {
+			p.Amount = effect.Amount
+			return nil
+		}
+	}
+
+	return errors.New("Could not find `account_credited` effect in `account_merge` operation effects")
 }
 
 // SequenceForAccount implements build.SequenceProvider
@@ -242,6 +359,8 @@ func (c *Client) stream(
 		query.Set("cursor", string(*cursor))
 	}
 
+	client := http.Client{}
+
 	for {
 		req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", baseURL, query.Encode()), nil)
 		if err != nil {
@@ -249,79 +368,89 @@ func (c *Client) stream(
 		}
 		req.Header.Set("Accept", "text/event-stream")
 
-		resp, err := c.HTTP.Do(req)
+		// Make sure we don't use c.HTTP that can have Timeout set.
+		resp, err := client.Do(req)
 		if err != nil {
 			return err
 		}
 		defer resp.Body.Close()
-		scanner := bufio.NewScanner(resp.Body)
-		scanner.Split(splitSSE)
 
-		var objectBytes []byte
+		reader := bufio.NewReader(resp.Body)
 
-		for scanner.Scan() {
-			// Check if ctx is not cancelled
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-				// Continue streaming
+		// Read events one by one. Break this loop when there is no more data to be
+		// read from resp.Body (io.EOF).
+	Events:
+		for {
+			// Read until empty line = event delimiter. The perfect solution would be to read
+			// as many bytes as possible and forward them to sse.Decode. However this
+			// requires much more complicated code.
+			// We could also write our own `sse` package that works fine with streams directly
+			// (github.com/manucorporat/sse is just using io/ioutils.ReadAll).
+			var buffer bytes.Buffer
+			nonEmptylinesRead := 0
+			for {
+				// Check if ctx is not cancelled
+				select {
+				case <-ctx.Done():
+					return nil
+				default:
+					// Continue
+				}
+
+				line, err := reader.ReadString('\n')
+				if err != nil {
+					if err == io.EOF {
+						// Currently Horizon appends a new line after the last event so this is not really
+						// needed. We have this code here in case this behaviour is changed in a future.
+						// From spec:
+						// > Once the end of the file is reached, the user agent must dispatch the
+						// > event one final time, as defined below.
+						if nonEmptylinesRead == 0 {
+							break Events
+						}
+					} else {
+						return err
+					}
+				}
+
+				buffer.WriteString(line)
+
+				if strings.TrimRight(line, "\n\r") == "" {
+					break
+				}
+
+				nonEmptylinesRead++
 			}
 
-			if len(scanner.Bytes()) == 0 {
-				continue
-			}
-
-			ev, err := parseEvent(scanner.Bytes())
+			events, err := sse.Decode(strings.NewReader(buffer.String()))
 			if err != nil {
 				return err
 			}
 
-			if ev.Event != "message" {
-				continue
+			// Right now len(events) should always be 1. This loop will be helpful after writing
+			// new SSE decoder that can handle io.Reader without using ioutils.ReadAll().
+			for _, event := range events {
+				if event.Event != "message" {
+					continue
+				}
+
+				// Update cursor with event ID
+				if event.Id != "" {
+					query.Set("cursor", event.Id)
+				}
+
+				switch data := event.Data.(type) {
+				case string:
+					err = handler([]byte(data))
+				case []byte:
+					err = handler(data)
+				default:
+					err = errors.New("Invalid event.Data type")
+				}
+				if err != nil {
+					return err
+				}
 			}
-
-			switch data := ev.Data.(type) {
-			case string:
-				err = handler([]byte(data))
-				objectBytes = []byte(data)
-			case []byte:
-				err = handler(data)
-				objectBytes = data
-			default:
-				err = errors.New("Invalid ev.Data type")
-			}
-			if err != nil {
-				return err
-			}
-		}
-
-		err = scanner.Err()
-
-		// Start streaming from the next object:
-		// - if there was no error OR
-		// - if connection was lost
-		if err == nil || err == io.ErrUnexpectedEOF {
-			object := struct {
-				PT string `json:"paging_token"`
-			}{}
-
-			err := json.Unmarshal(objectBytes, &object)
-			if err != nil {
-				return errors.Wrap(err, "Error unmarshaling objectBytes")
-			}
-
-			if object.PT != "" {
-				query.Set("cursor", object.PT)
-			} else {
-				return errors.New("no paging_token in object: cannot continue")
-			}
-
-			continue
-		}
-
-		if err != nil {
-			return err
 		}
 	}
 }

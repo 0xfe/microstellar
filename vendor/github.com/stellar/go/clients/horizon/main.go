@@ -63,6 +63,11 @@ var (
 	// Envelope() against a `Problem` value that doesn't have the
 	// "envelope_xdr" extra field populated when it is expected to be.
 	ErrEnvelopeNotPopulated = errors.New("envelope_xdr not populated")
+
+	// ErrResultNotPopulated is the error returned from a call to
+	// Result() against a `Problem` value that doesn't have the
+	// "result_xdr" extra field populated when it is expected to be.
+	ErrResultNotPopulated = errors.New("result_xdr not populated")
 )
 
 // Client struct contains data required to connect to Horizon instance
@@ -81,9 +86,24 @@ type ClientInterface interface {
 	HomeDomainForAccount(aid string) (string, error)
 	LoadAccount(accountID string) (Account, error)
 	LoadAccountOffers(accountID string, params ...interface{}) (offers OffersPage, err error)
-	LoadTradeAggregations(selling Asset, buying Asset, resolution int64, params ...interface{}) (tradeAggrs TradeAggregationsPage, err error)
+	LoadTradeAggregations(
+		baseAsset Asset,
+		counterAsset Asset,
+		resolution int64,
+		params ...interface{},
+	) (tradeAggrs TradeAggregationsPage, err error)
+	LoadTrades(
+		baseAsset Asset,
+		counterAsset Asset,
+		offerID int64,
+		resolution int64,
+		params ...interface{},
+	) (tradesPage TradesPage, err error)
+	LoadAccountMergeAmount(p *Payment) error
 	LoadMemo(p *Payment) error
+	LoadOperation(operationID string) (payment Payment, err error)
 	LoadOrderBook(selling Asset, buying Asset, params ...interface{}) (orderBook OrderBookSummary, err error)
+	LoadTransaction(transactionID string) (transaction Transaction, err error)
 	SequenceForAccount(accountID string) (xdr.SequenceNumber, error)
 	StreamLedgers(ctx context.Context, cursor *Cursor, handler LedgerHandler) error
 	StreamPayments(ctx context.Context, accountID string, cursor *Cursor, handler PaymentHandler) error

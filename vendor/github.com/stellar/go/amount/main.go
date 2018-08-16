@@ -11,6 +11,7 @@ package amount
 
 import (
 	"math/big"
+	"regexp"
 	"strconv"
 
 	"github.com/stellar/go/support/errors"
@@ -25,6 +26,13 @@ const (
 
 var (
 	bigOne = big.NewRat(One, 1)
+	// validAmountSimple is a simple regular expression checking if a string looks like
+	// a number, more or less. The details will be checked in `math/big` internally.
+	// What we want to prevent is passing very big numbers like `1e9223372036854775807`
+	// to `big.Rat.SetString` triggering long calculations.
+	// Note: {1,20} because the biggest amount you can use in Stellar is:
+	// len("922337203685.4775807") = 20.
+	validAmountSimple = regexp.MustCompile("^-?[.0-9]{1,20}$")
 )
 
 // MustParse is the panicking version of Parse.
@@ -51,6 +59,10 @@ func Parse(v string) (xdr.Int64, error) {
 // integer that represents a decimal number with 7 digits of significance in
 // the fractional portion of the number.
 func ParseInt64(v string) (int64, error) {
+	if !validAmountSimple.MatchString(v) {
+		return 0, errors.Errorf("invalid amount format: %s", v)
+	}
+
 	r := &big.Rat{}
 	if _, ok := r.SetString(v); !ok {
 		return 0, errors.Errorf("cannot parse amount: %s", v)
@@ -66,6 +78,25 @@ func ParseInt64(v string) (int64, error) {
 		return 0, errors.Wrapf(err, "amount outside bounds of int64: %s", v)
 	}
 	return i, nil
+}
+
+// IntStringToAmount converts string integer value and converts it to stellar
+// "amount". In other words, it divides the given string integer value by 10^7
+// and returns the string representation of that number.
+// It is safe to use with values exceeding int64 limits.
+func IntStringToAmount(v string) (string, error) {
+	if !validAmountSimple.MatchString(v) {
+		return "", errors.Errorf("invalid amount format: %s", v)
+	}
+
+	r := &big.Rat{}
+	if _, ok := r.SetString(v); !ok {
+		return "", errors.Errorf("cannot parse amount: %s", v)
+	}
+
+	r.Quo(r, bigOne)
+
+	return r.FloatString(7), nil
 }
 
 // String returns an "amount string" from the provided raw xdr.Int64 value `v`.

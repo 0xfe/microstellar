@@ -68,6 +68,9 @@ type AutoSequence struct {
 	SequenceProvider
 }
 
+// BumpTo sets sequence number on BumpSequence operation
+type BumpTo int64
+
 // NativeAsset is a helper method to create native Asset object
 func NativeAsset() Asset {
 	return Asset{Native: true}

@@ -59,10 +59,36 @@ func (m *MockClient) LoadTradeAggregations(
 	return a.Get(0).(TradeAggregationsPage), a.Error(1)
 }
 
+// LoadTrades is a mocking a method
+func (m *MockClient) LoadTrades(
+	baseAsset Asset,
+	counterAsset Asset,
+	offerID int64,
+	resolution int64,
+	params ...interface{},
+) (tradesPage TradesPage, err error) {
+	args := []interface{}{baseAsset, counterAsset, offerID, resolution}
+	args = append(args, params...)
+	a := m.Called(args...)
+	return a.Get(0).(TradesPage), a.Error(1)
+}
+
+// LoadAccountMergeAmount is a mocking a method
+func (m *MockClient) LoadAccountMergeAmount(p *Payment) error {
+	a := m.Called(p)
+	return a.Error(0)
+}
+
 // LoadMemo is a mocking a method
 func (m *MockClient) LoadMemo(p *Payment) error {
 	a := m.Called(p)
 	return a.Error(0)
+}
+
+// LoadMemo is a mocking a method
+func (m *MockClient) LoadOperation(operationID string) (payment Payment, err error) {
+	a := m.Called(operationID)
+	return a.Get(0).(Payment), a.Error(1)
 }
 
 // LoadOrderBook is a mocking a method
@@ -73,6 +99,12 @@ func (m *MockClient) LoadOrderBook(
 ) (orderBook OrderBookSummary, err error) {
 	a := m.Called(selling, buying, params)
 	return a.Get(0).(OrderBookSummary), a.Error(1)
+}
+
+// LoadTransaction is a mocking a method
+func (m *MockClient) LoadTransaction(transactionID string) (transaction Transaction, err error) {
+	a := m.Called(transactionID)
+	return a.Get(0).(Transaction), a.Error(1)
 }
 
 // SequenceForAccount is a mocking a method

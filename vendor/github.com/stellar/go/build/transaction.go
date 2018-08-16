@@ -138,6 +138,18 @@ func (m AutoSequence) MutateTransaction(o *TransactionBuilder) error {
 	return nil
 }
 
+// MutateTransaction for BumpSequenceBuilder causes the underylying BumpSequenceOp
+// to be added to the operation list for the provided transaction
+func (m BumpSequenceBuilder) MutateTransaction(o *TransactionBuilder) error {
+	if m.Err != nil {
+		return m.Err
+	}
+
+	m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeBumpSequence, m.BS)
+	o.TX.Operations = append(o.TX.Operations, m.O)
+	return m.Err
+}
+
 // MutateTransaction for ChangeTrustBuilder causes the underylying
 // CreateAccountOp to be added to the operation list for the provided
 // transaction
