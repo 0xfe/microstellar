@@ -33,7 +33,7 @@ go get github.com/0xfe/microstellar
 ms := microstellar.New("test")
 
 // Generate a new random keypair. In stellar lingo, a "seed" is a private key, and
-// an "address" is a public key. (Not techincally accurate, but you get the picture.)
+// an "address" is a public key. (Not technically accurate, but you get the picture.)
 //
 // Seed strings begin with "S" -- "S6H4HQPE6BRZKLK3QNV6LTD5BGS7S6SZPU3PUGMJDJ26V7YRG3FRNPGA"
 // Address strings begin with "G" -- "GAUYTZ24ATLEBIV63MXMPOPQO2T6NHI6TQYEXRTFYXWYZ3JOCVO6UYUM"
@@ -175,7 +175,7 @@ ms.SetHomeDomain(bob.Address, "qubit.sh")
 // Attach arbitrary data to Bob's account.
 ms.SetData(bob.Address, "foo", []byte("bar"))
 
-// Set Bob's acount flags.
+// Set Bob's account flags.
 ms.SetFlags(bob.Address, microstellar.FlagAuthRequired | microstellar.FlagsAuthImmutable)
 
 // Make some payments
