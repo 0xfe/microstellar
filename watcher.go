@@ -47,7 +47,7 @@ func (ms *MicroStellar) WatchLedgers(options ...*Options) (*LedgerWatcher, error
 		}
 
 		err := params.tx.GetClient().StreamLedgers(params.ctx, params.cursor, func(ledger horizon.Ledger) {
-			debugf("WatchLedger", "entry (%s) total_coins: %s, tx_count: %v, op_count: %v", ledger.ID, ledger.TotalCoins, ledger.TransactionCount, ledger.OperationCount)
+			debugf("WatchLedger", "entry (%s) total_coins: %s, op_count: %v", ledger.ID, ledger.TotalCoins, ledger.OperationCount)
 			l := Ledger(ledger)
 			w.Ch <- &l
 		})
