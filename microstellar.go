@@ -415,6 +415,7 @@ func (ms *MicroStellar) Pay(sourceAddressOrSeed string, targetAddress string, am
 		}
 	}
 
+	paymentMuts = append(paymentMuts, build.SourceAccount{AddressOrSeed: sourceAddressOrSeed})
 	tx.Build(sourceAccount(sourceAddressOrSeed), build.Payment(paymentMuts...))
 	return ms.signAndSubmit(tx, sourceAddressOrSeed)
 }
