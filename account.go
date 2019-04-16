@@ -99,10 +99,9 @@ func newAccountFromHorizon(ha horizon.Account) *Account {
 	account.Signers = []Signer{}
 	for _, s := range ha.Signers {
 		signer := Signer{
-			PublicKey: s.PublicKey,
-			Weight:    s.Weight,
-			Key:       s.Key,
-			Type:      s.Type,
+			Weight: s.Weight,
+			Key:    s.Key,
+			Type:   s.Type,
 		}
 		account.Signers = append(account.Signers, signer)
 	}
